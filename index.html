@@ -1766,9 +1766,6 @@
       function markAwayTime() {
         if (isResetting) return;
 
-        // すでに記録済みなら上書きしない
-        // visibilitychange と pagehide が両方来ても
-        // 最初に離れた時間を残す
         if (localStorage.getItem("mezapechiAwaySince") === null) {
           localStorage.setItem(
             "mezapechiAwaySince",
@@ -1789,35 +1786,10 @@
         const awaySince =
           localStorage.getItem("mezapechiAwaySince");
 
-        if (awaySince === null) {
-          return;
-        }
+        if (awaySince === null) return;
 
-        // 先に消す
-        // pageshow / visibilitychange / focus が
-        // 続けて発生しても二重計算されない
-        localStorage.removeItem("mezapechiAwaySince");
-
-        const now = Date.now();
-        const offlineMs = now - Number(awaySince);
-
-        // 1秒以上離れていたらおるすばん計算
-        if (offlineMs >= 1000) {
-          applyOfflineProgress(offlineMs);
-        }
-
-        // iPhoneに復活タイマーを止められていても
-        // 必ず戦闘へ戻れるようにする
-        if (isDead || playerHp <= 0) {
-          playerHp = playerMaxHp;
-          isDead = false;
-          reviveMezapechi();
-
-          document.getElementById("battleMessage").textContent =
-            "めざぺちはふっかつした！";
-        }
-
-        updateScreen();
+        // 復帰時はその場で直そうとせず再起動
+        location.reload();
       }
 
 
@@ -1833,20 +1805,12 @@
       });
 
 
-      // --------------------
-      // iPhoneホーム画面版用の保険
-      // --------------------
+      // iPhoneホーム画面版用
       window.addEventListener("pagehide", () => {
         markAwayTime();
       });
 
       window.addEventListener("pageshow", () => {
-        resumeFromAway();
-      });
-
-
-      // さらに復帰を拾う保険
-      window.addEventListener("focus", () => {
         resumeFromAway();
       });
     </script>
