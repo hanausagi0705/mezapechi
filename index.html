@@ -1477,7 +1477,7 @@
 
       scheduleNextAttack();
 
-      function applyOfflineBattle(offlineMs) {
+      ffunction applyOfflineBattle(offlineMs) {
         // 100ms = 1戦闘ターン
         let turns = Math.floor(offlineMs / 100);
 
@@ -1485,103 +1485,98 @@
 
         const attack = magic + hammer;
 
-        while (turns > 0) {
-
-          // --------------------
-          // しんでいるとき
-          // --------------------
-          if (isDead || playerHp <= 0) {
-            // ふっかつには3びょう = 30ターン
-            if (turns < 30) {
-              break;
-            }
-
+        // おるすばん開始時に通常画面で倒れていた場合
+        // 3秒ぶんを復活待ちとして消費する
+        if (isDead || playerHp <= 0) {
+          if (turns >= 30) {
             turns -= 30;
-            playerHp = playerMaxHp;
-            isDead = false;
+          } else {
+            turns = 0;
           }
 
-          // --------------------
-          // このてきをたおすのに
-          // ひつようなこうげきかいすう
-          // --------------------
+          playerHp = playerMaxHp;
+          isDead = false;
+        }
+
+        while (turns > 0) {
+
+          // この敵を倒すのに必要な攻撃回数
           const attacksNeeded =
             Math.ceil(enemyHp / attack);
 
-          // のこりじかんではたおせない
-          if (turns < attacksNeeded) {
-            const possibleAttacks = turns;
-
-            enemyHp -= attack * possibleAttacks;
-
-            // さいごまでてきはしなないので
-            // こうげきされたぶんだけダメージ
-            playerHp -= enemyAttack * possibleAttacks;
-
-            turns = 0;
-
-            // そのとちゅうでぺちがしんでいたか
-            if (playerHp <= 0) {
-              playerHp = 0;
-              deathCount++;
-              isDead = true;
-
-              checkAchievements();
-
-              stageDefeatCount = 0;
-              spawnEnemy();
-            }
-
-            break;
-          }
-
-          // --------------------
-          // てきをたおすまえに
-          // ぺちがしぬかチェック
-          // --------------------
-
-          // さいごのこうげきでは
-          // てきはしぬので反撃されない
-          const enemyCounterAttacks =
-            Math.max(0, attacksNeeded - 1);
-
-          // 何回の反撃でぺちがしぬか
+          // 何回の反撃でぺちが倒れるか
           const hitsUntilDeath =
             Math.ceil(playerHp / enemyAttack);
 
-          if (
-            enemyCounterAttacks > 0 &&
-            hitsUntilDeath <= enemyCounterAttacks
-          ) {
-            // ぺちがしぬまでに行える攻撃回数
-            const attacksBeforeDeath =
-              hitsUntilDeath;
+          // --------------------
+          // 敵を倒すより先にぺちが倒れる
+          // --------------------
+          if (hitsUntilDeath <= attacksNeeded - 1) {
 
-            // そのぶん時間をすすめる
-            turns -= attacksBeforeDeath;
+            // 残り時間では死亡まで届かない
+            if (turns < hitsUntilDeath) {
+              enemyHp -= attack * turns;
+              playerHp -= enemyAttack * turns;
 
-            // てきHPをへらす
+              turns = 0;
+              break;
+            }
+
+            // 死亡するところまで戦闘
             enemyHp -=
-              attack * attacksBeforeDeath;
+              attack * hitsUntilDeath;
 
-            // ぺち死亡
+            turns -= hitsUntilDeath;
+
             playerHp = 0;
             deathCount++;
-            isDead = true;
 
+            // 死亡実績の判定時だけ死亡扱いにする
+            // 通常戦闘へ isDead=true を持ち越さない
+            isDead = true;
             checkAchievements();
+            isDead = false;
 
             stageDefeatCount = 0;
+
+            // 死亡したら敵は新しくなる
             spawnEnemy();
+
+            // 復活待ち3秒
+            if (turns >= 30) {
+              turns -= 30;
+            } else {
+              turns = 0;
+            }
+
+            // おるすばん内で復活完了
+            playerHp = playerMaxHp;
 
             continue;
           }
 
           // --------------------
-          // てきをたおせる
+          // ぺちは敵を倒せる
           // --------------------
 
+          // 残り時間では倒しきれない
+          if (turns < attacksNeeded) {
+            enemyHp -=
+              attack * turns;
+
+            playerHp -=
+              enemyAttack * turns;
+
+            turns = 0;
+            break;
+          }
+
+          // 敵撃破まで進める
           turns -= attacksNeeded;
+
+          // 最後の一撃では敵が倒れるので反撃なし
+          const enemyCounterAttacks =
+            Math.max(0, attacksNeeded - 1);
 
           playerHp -=
             enemyAttack * enemyCounterAttacks;
@@ -1611,6 +1606,14 @@
 
           checkStageClear();
           spawnEnemy();
+        }
+
+        // おるすばん戦闘から通常画面へ
+        // 「死んだ状態」は絶対に持ち越さない
+        isDead = false;
+
+        if (playerHp <= 0) {
+          playerHp = playerMaxHp;
         }
       }
 
