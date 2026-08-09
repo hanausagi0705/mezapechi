@@ -575,6 +575,7 @@
       let isOfflineProgress = false;
       let isResetting = false;
       let offlineAchievements = [];
+      let achievementMessageTimer;
 
       const difficultyNames = [
         "ノーマル",
@@ -1322,8 +1323,6 @@
           list.appendChild(p);
         });
       }
-
-      let achievementMessageTimer;
 
       function showAchievementMessage(text) {
         const message =
