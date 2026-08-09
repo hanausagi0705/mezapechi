@@ -705,7 +705,6 @@
 
           // てきをたおしたときだけ増える
           defeatCount++;
-          checkAchievements();
           stageDefeatCount++;
 
           // 10たいごとにHPぜんかい
@@ -730,6 +729,8 @@
           }
 
           checkStageClear();
+
+          checkAchievements();
 
           // つぎのてき
           spawnEnemy();
