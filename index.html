@@ -1252,7 +1252,9 @@
               achievement.hp
             );
 
-            saveGame();
+            if (!isOfflineProgress) {
+              saveGame();
+            }
           }
         });
 
@@ -1530,11 +1532,7 @@
             playerHp = 0;
             deathCount++;
 
-            // 死亡実績の判定時だけ死亡扱いにする
-            // 通常戦闘へ isDead=true を持ち越さない
-            ideathCount++;
             checkAchievements();
-
             stageDefeatCount = 0;
 
             // 死亡したら敵は新しくなる
