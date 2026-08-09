@@ -1769,6 +1769,44 @@
           return;
         }
 
+        window.addEventListener("pageshow", () => {
+          const awaySince =
+            localStorage.getItem("mezapechiAwaySince");
+
+          if (awaySince === null) return;
+
+          localStorage.removeItem("mezapechiAwaySince");
+
+          const now = Date.now();
+          const offlineMs = now - Number(awaySince);
+
+          if (offlineMs >= 1000) {
+            applyOfflineProgress(offlineMs);
+          }
+
+          // 念のため通常戦闘へ戻れる状態にする
+          if (playerHp <= 0) {
+            playerHp = playerMaxHp;
+          }
+
+          isDead = false;
+
+          updateScreen();
+        });
+
+        window.addEventListener("pagehide", () => {
+          if (isResetting) return;
+
+          const now = Date.now();
+
+          localStorage.setItem(
+            "mezapechiAwaySince",
+            String(now)
+          );
+
+          saveGame();
+        });
+
         // めざぺち画面へ戻ってきた
         const awaySince =
           localStorage.getItem("mezapechiAwaySince");
