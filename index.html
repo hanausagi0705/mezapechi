@@ -1643,8 +1643,14 @@
         // オフライン中のせんとう
         applyOfflineBattle(offlineMs);
 
-        isOfflineProgress = false;
+        // おるすばん終了時に倒れていたら復活
+        if (isDead || playerHp <= 0) {
+          playerHp = playerMaxHp;
+          isDead = false;
+          reviveMezapechi();
+        }
 
+        isOfflineProgress = false;
         updateScreen();
         updateProgress();
         updateAchievements();
