@@ -354,6 +354,8 @@
 
       <p id="battleMessage"></p>
 
+      <p id="debugStatus">デバッグ：待機中</p>
+
       <button onclick="showScreen('menuScreen')">
         メニュー
       </button>
@@ -1654,6 +1656,8 @@
 
         // オフライン中のせんとう
         applyOfflineBattle(offlineMs);
+        document.getElementById("debugStatus").textContent =
+          "デバッグ：戦闘計算終了";
 
         // おるすばん終了時に倒れていたら復活
         if (isDead || playerHp <= 0) {
@@ -1790,45 +1794,38 @@
       function resumeFromAway() {
         if (isResetting) return;
 
+        const debug =
+          document.getElementById("debugStatus");
+
+        debug.textContent =
+          "デバッグ：復帰イベント発生";
+
         const awaySince =
           localStorage.getItem("mezapechiAwaySince");
 
-        if (awaySince === null) return;
+        if (awaySince === null) {
+          debug.textContent =
+            "デバッグ：離席時間なし";
+          return;
+        }
 
-        // 先に消して二重処理を防ぐ
         localStorage.removeItem("mezapechiAwaySince");
 
         const now = Date.now();
         const offlineMs = now - Number(awaySince);
 
+        debug.textContent =
+          "デバッグ：おるすばん計算開始";
+
         if (offlineMs >= 1000) {
           applyOfflineProgress(offlineMs);
         }
 
+        debug.textContent =
+          "デバッグ：おるすばん計算終了";
+
         updateScreen();
       }
-
-
-      // --------------------
-      // 表示 / 非表示
-      // --------------------
-      document.addEventListener("visibilitychange", () => {
-        if (document.hidden) {
-          markAwayTime();
-        } else {
-          resumeFromAway();
-        }
-      });
-
-
-      // iPhoneホーム画面版用
-      window.addEventListener("pagehide", () => {
-        markAwayTime();
-      });
-
-      window.addEventListener("pageshow", () => {
-        resumeFromAway();
-      });
     </script>
 
 </body>
