@@ -354,8 +354,6 @@
 
       <p id="battleMessage"></p>
 
-      <p id="debugStatus">デバッグ：待機中</p>
-
       <button onclick="showScreen('menuScreen')">
         メニュー
       </button>
@@ -527,15 +525,6 @@
     </div>
 
     <script>
-
-      window.addEventListener("error", (event) => {
-        const message = document.getElementById("battleMessage");
-
-        if (message) {
-          message.textContent =
-            "エラー：" + event.message;
-        }
-      });
 
       let level = 1;
       let magic = 1;
@@ -1656,8 +1645,6 @@
 
         // オフライン中のせんとう
         applyOfflineBattle(offlineMs);
-        document.getElementById("debugStatus").textContent =
-          "デバッグ：戦闘計算終了";
 
         // おるすばん終了時に倒れていたら復活
         if (isDead || playerHp <= 0) {
@@ -1794,35 +1781,17 @@
       function resumeFromAway() {
         if (isResetting) return;
 
-        const debug =
-          document.getElementById("debugStatus");
-
-        debug.textContent =
-          "デバッグ：復帰イベント発生";
-
         const awaySince =
           localStorage.getItem("mezapechiAwaySince");
-
-        if (awaySince === null) {
-          debug.textContent =
-            "デバッグ：離席時間なし";
-          return;
-        }
 
         localStorage.removeItem("mezapechiAwaySince");
 
         const now = Date.now();
         const offlineMs = now - Number(awaySince);
 
-        debug.textContent =
-          "デバッグ：おるすばん計算開始";
-
         if (offlineMs >= 1000) {
           applyOfflineProgress(offlineMs);
         }
-
-        debug.textContent =
-          "デバッグ：おるすばん計算終了";
 
         updateScreen();
       }
