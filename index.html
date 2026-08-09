@@ -564,6 +564,8 @@
       let isResetting = false;
       let offlineAchievements = [];
 
+      let reviveAt = 0;
+
       const difficultyNames = [
         "ノーマル",
         "ハード",
@@ -1043,7 +1045,23 @@
       // 100msごとにじどうせんとう
       setInterval(() => {
         if (document.hidden) return;
-        if (isDead) return;
+
+        if (isDead) {
+          if (Date.now() >= reviveAt) {
+            playerHp = playerMaxHp;
+            isDead = false;
+            reviveAt = 0;
+
+            reviveMezapechi();
+
+            document.getElementById("battleMessage").textContent =
+              "めざぺちはふっかつした！";
+
+            updateScreen();
+          }
+
+          return;
+        }
 
         // HPがおかしく0以下になっていたら復活
         if (playerHp <= 0) {
@@ -1566,6 +1584,7 @@
             playerHp = 0;
             deathCount++;
             isDead = true;
+            reviveAt = Date.now() + 3000;
 
             checkAchievements();
 
