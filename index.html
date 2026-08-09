@@ -1,0 +1,1792 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>めざぺちの冒険</title>
+  <link rel="icon" type="image/png" href="mezapechi-icon.png">
+  <link rel="apple-touch-icon" href="mezapechi-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="めざぺちの冒険">
+  <style>
+    body {
+      margin: 0;
+      background: #45232D;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+    }
+
+    .game {
+      padding-top: 40px;
+    }
+
+    .mezapechi {
+      width: 300px;
+      max-width: 80%;
+    }
+
+    .status {
+      margin-top: 20px;
+      font-size: 24px;
+    }
+
+    .player-hp {
+      width: 300px;
+      max-width: 80%;
+      margin: 5px auto 15px;
+    }
+
+    .hp-bar {
+      width: 100%;
+      height: 16px;
+      border: 2px solid white;
+      box-sizing: border-box;
+    }
+
+    .hp-bar-fill {
+      width: 100%;
+      height: 100%;
+      background: limegreen;
+    }
+
+    @media (max-width: 600px) {
+
+      .mezapechi {
+        width: 420px;
+        max-width: 95%;
+      }
+
+      button {
+        min-height: 72px;
+        font-size: 26px;
+        padding: 16px 24px;
+        margin: 8px;
+      }
+
+      .player-hp {
+        width: 420px;
+        max-width: 95%;
+        font-size: 22px;
+      }
+
+      .hp-bar {
+        height: 22px;
+      }
+
+      body {
+        font-size: 20px;
+      }
+
+      .mini-mezapechi-area {
+        margin-bottom: -45px;
+      }
+    }
+
+    @keyframes mezapechiBreath {
+      0% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-6px);
+      }
+
+      100% {
+        transform: translateY(0);
+      }
+    }
+
+    #mezapechiWander {
+      display: inline-block;
+      transition: transform 2s ease-in-out;
+    }
+
+    #mezapechiDirection {
+      display: inline-block;
+    }
+
+    #mezapechiDirection.faceRight {
+      transform: scaleX(-1);
+    }
+
+    #mezapechiMain {
+      animation: mezapechiBreath 2.5s ease-in-out infinite;
+    }
+
+    .mini-mezapechi-area {
+      position: relative;
+      width: 100%;
+      height: 100px;
+      overflow: hidden;
+      margin-bottom: -40px;
+    }
+
+    .mini-mezapechi {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+
+      width: 75px;
+      height: auto;
+
+      transition: left 2s ease-in-out;
+
+      filter: brightness(1.2);
+
+      filter:
+        drop-shadow(1px 0 0 rgba(255, 255, 255, 0.5)) drop-shadow(-1px 0 0 rgba(255, 255, 255, 0.5)) drop-shadow(0 1px 0 rgba(255, 255, 255, 0.5)) drop-shadow(0 -1px 0 rgba(255, 255, 255, 0.5));
+    }
+
+    .mini-mezapechi.face-right {
+      transform: scaleX(-1);
+    }
+
+    @keyframes titlePechiFloat {
+      0% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-3px);
+      }
+
+      100% {
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes mezapechiHappy {
+      0% {
+        transform: translateY(0);
+      }
+
+      15% {
+        transform: translateY(-18px);
+      }
+
+      30% {
+        transform: translateY(0);
+      }
+
+      45% {
+        transform: translateY(-18px);
+      }
+
+      60% {
+        transform: translateY(0);
+      }
+
+      75% {
+        transform: translateY(-18px);
+      }
+
+      90% {
+        transform: translateY(0);
+      }
+
+      100% {
+        transform: translateY(0);
+      }
+    }
+
+    #mezapechiHappy.happy {
+      animation: mezapechiHappy 0.9s ease-in-out;
+    }
+
+    @keyframes mezapechiDeadLeft {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(90deg);
+      }
+    }
+
+    @keyframes mezapechiDeadRight {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(-90deg);
+      }
+    }
+
+    #mezapechiHappy.deadLeft {
+      animation: mezapechiDeadLeft 0.4s ease-out forwards;
+    }
+
+    #mezapechiHappy.deadRight {
+      animation: mezapechiDeadRight 0.4s ease-out forwards;
+    }
+
+    #mezapechiHappy.deadLeft #mezapechiMain,
+    #mezapechiHappy.deadRight #mezapechiMain {
+      animation: none;
+    }
+
+    @keyframes mezapechiAttackLeft {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      45% {
+        transform: rotate(-40deg);
+      }
+
+      100% {
+        transform: rotate(0deg);
+      }
+    }
+
+    @keyframes mezapechiAttackRight {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      45% {
+        transform: rotate(40deg);
+      }
+
+      100% {
+        transform: rotate(0deg);
+      }
+    }
+
+    #mezapechiHappy.attackLeft {
+      animation: mezapechiAttackLeft 0.4s ease-in-out;
+    }
+
+    #mezapechiHappy.attackRight {
+      animation: mezapechiAttackRight 0.4s ease-in-out;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="game">
+
+    <div class="mini-mezapechi-area">
+      <img src="mezapechi.png" id="miniMezapechi" class="mini-mezapechi" alt="">
+    </div>
+
+    <h1>めざぺちの冒険</h1>
+
+    <!-- メイン -->
+    <div id="mainScreen">
+
+      <div id="mezapechiWander">
+        <div id="mezapechiHappy">
+          <div id="mezapechiDirection">
+            <img src="mezapechi.png" class="mezapechi" id="mezapechiMain" alt="めざぺち">
+          </div>
+        </div>
+      </div>
+
+      <div class="player-hp">
+        <div>
+          HP：<span id="mainPlayerHp">100</span> /
+          <span id="mainPlayerMaxHp">100</span>
+        </div>
+
+        <div class="hp-bar">
+          <div id="playerHpBar" class="hp-bar-fill"></div>
+        </div>
+      </div>
+
+      <div id="offlineResult" style="display: none;">
+        <hr>
+
+        <h3>おるすばんけっか</h3>
+
+        <p id="offlineTime"></p>
+        <p id="offlineExp"></p>
+        <p id="offlineDefeats"></p>
+        <p id="offlineDeaths"></p>
+        <p id="offlineMoney"></p>
+        <p id="offlineProgress"></p>
+        <p id="offlineAchievements"></p>
+
+        <button onclick="closeOfflineResult()">
+          とじる
+        </button>
+
+        <hr>
+      </div>
+
+      <p id="achievementMessage"></p>
+
+      <p>めざぺち Lv.<span id="level">1</span></p>
+      <p>かりょく：<span id="attack">2</span></p>
+
+      <p>
+        けいけんち：
+        <span id="exp">0</span> /
+        <span id="requiredExp">10</span>
+      </p>
+
+      <button onclick="levelUp()">
+        まとめてレベルアップ
+      </button>
+
+      <hr>
+
+      <p id="difficulty">ノーマル</p>
+
+      <p>
+        エリア <span id="area">1</span>
+        /
+        ステージ <span id="stage">1</span>
+      </p>
+      <p id="bossProgress">
+        ボスまであと 9たい
+      </p>
+
+      <p><span id="enemyName">モブA</span></p>
+
+      <p>
+        HP：<span id="enemyHp">100</span>
+      </p>
+
+      <p id="battleMessage"></p>
+
+      <button onclick="showScreen('menuScreen')">
+        メニュー
+      </button>
+
+    </div>
+
+
+    <!-- メニュー -->
+    <div id="menuScreen" style="display: none;">
+
+      <h2>メニュー</h2>
+
+      <p>ギル：<span id="menuMoney">0</span></p>
+
+      <button onclick="showScreen('statusScreen')">
+        ステータス
+      </button>
+
+      <button onclick="showScreen('upgradeScreen')">
+        きょうか
+      </button>
+
+      <button onclick="showScreen('achievementScreen')">
+        じっせき
+      </button>
+
+      <button onclick="showScreen('titleScreen')">
+        しょうごう
+      </button>
+
+      <button onclick="showScreen('settingsScreen')">
+        せってい
+      </button>
+
+      <br><br>
+
+      <button onclick="showScreen('mainScreen')">
+        もどる
+      </button>
+
+    </div>
+
+
+    <!-- ステータス -->
+    <div id="statusScreen" style="display: none;">
+
+      <h2>ステータス</h2>
+
+      <p>Lv.<span id="statusLevel">1</span></p>
+
+      <p>
+        MAX HP：<span id="playerMaxHp">100</span>
+      </p>
+
+      <p>まりょく：<span id="statusMagic">1</span></p>
+
+      <p>
+        りーふらわー：+
+        <span id="statusHammer">1</span>
+      </p>
+
+      <p>かりょく：<span id="statusAttack">2</span></p>
+
+      <button onclick="showScreen('menuScreen')">
+        もどる
+      </button>
+
+    </div>
+
+
+    <!-- きょうか -->
+    <div id="upgradeScreen" style="display: none;">
+
+      <h2>きょうか</h2>
+
+      <p>ギル：<span id="upgradeMoney">0</span></p>
+
+      <p>
+        りーふらわー：+
+        <span id="hammer">1</span>
+      </p>
+
+      <p>
+        きょうかひよう：
+        <span id="hammerCost">10</span>ギル
+      </p>
+
+      <button onclick="upgradeHammer()">
+        まとめてきょうか
+      </button>
+
+      <br><br>
+
+      <button onclick="showScreen('menuScreen')">
+        もどる
+      </button>
+
+    </div>
+
+    <!-- じっせき -->
+    <div id="achievementScreen" style="display: none;">
+
+      <h2>じっせき</h2>
+
+      <p>たおしたかず：<span id="achievementDefeatCount">0</span>たい</p>
+      <p>たおれたかず：<span id="achievementDeathCount">0</span>かい</p>
+
+      <hr>
+
+      <div id="achievementList"></div>
+
+      <button onclick="showScreen('menuScreen')">
+        もどる
+      </button>
+
+    </div>
+
+
+    <!-- しょうごう -->
+    <div id="titleScreen" style="display: none;">
+
+      <h2>しょうごう</h2>
+
+      <p>じゅんびちゅう...</p>
+
+      <button onclick="showScreen('menuScreen')">
+        もどる
+      </button>
+    </div>
+
+    <!-- せってい -->
+    <div id="settingsScreen" style="display: none;">
+
+      <h2>せってい</h2>
+
+      <p>
+        BGM：
+        <button id="bgmButton" onclick="toggleBgm()">
+          オン
+        </button>
+      </p>
+
+      <p>
+        SE：
+        <button id="seButton" onclick="toggleSe()">
+          オン
+        </button>
+      </p>
+
+      <hr>
+
+      <button id="deleteButton" onclick="startResetGame()">
+        データをけす
+      </button>
+
+      <div id="resetConfirm" style="display: none;">
+        <p id="resetMessage"></p>
+
+        <button onclick="resetYes()">はい</button>
+        <button onclick="resetNo()">いいえ</button>
+      </div>
+
+      <br><br>
+
+      <button onclick="showScreen('menuScreen')">
+        もどる
+      </button>
+
+    </div>
+
+    <script>
+      let level = 1;
+      let magic = 1;
+      let hammer = 1;
+      let exp = 0;
+      let requiredExp = 10;
+
+      let playerMaxHp = 200;
+      let playerHp = playerMaxHp;
+
+      let enemyName = "モブA";
+      let enemyAttack = 10;
+      let enemyMaxHp = 100;
+      let enemyHp = enemyMaxHp;
+
+      let defeatCount = 0;
+      let deathCount = 0;
+      let isDead = false;
+      let unlockedAchievements = [];
+
+      let money = 0;
+      let hammerCost = 10;
+
+      let difficulty = 0;
+      let area = 1;
+      let stage = 1;
+
+      let stageDefeatCount = 0;
+      let requiredStageDefeats = 100;
+
+      let isInfinite = false;
+
+      let bgmOn = true;
+      let seOn = true;
+
+      let lastSaveTime = Date.now();
+      let isOfflineProgress = false;
+      let isResetting = false;
+      let offlineAchievements = [];
+
+      const difficultyNames = [
+        "ノーマル",
+        "ハード",
+        "ベリーハード",
+        "エクストラ",
+        "インフェルノ"
+      ];
+
+      function makeRange(start, end, step) {
+        const numbers = [];
+
+        for (let i = start; i <= end; i += step) {
+          numbers.push(i);
+        }
+
+        return numbers;
+      }
+
+      const deathAchievementNumbers = [
+        1,
+        ...makeRange(5, 50, 5),
+        ...makeRange(60, 100, 10),
+        ...makeRange(150, 500, 50),
+        ...makeRange(600, 1000, 100),
+        ...makeRange(1500, 5000, 500),
+        ...makeRange(6000, 10000, 1000),
+        ...makeRange(15000, 50000, 5000),
+        ...makeRange(60000, 100000, 10000),
+        ...makeRange(150000, 1000000, 50000)
+      ];
+
+      const deathAchievements = deathAchievementNumbers.map(number => ({
+        id: "death" + number,
+        text: number + "かいたおれる",
+        type: "death",
+        required: number,
+        hp: number
+      }));
+
+      const defeatAchievementNumbers = [
+        100,
+        500,
+        ...makeRange(1000, 5000, 1000),
+        ...makeRange(10000, 20000, 5000),
+        ...makeRange(30000, 50000, 10000),
+        ...makeRange(100000, 1000000, 100000)
+      ];
+
+      const defeatAchievements = defeatAchievementNumbers.map(number => ({
+        id: "defeat" + number,
+        text: "てきを" + number + "たいたおす",
+        type: "defeat",
+        required: number,
+        hp: number / 10
+      }));
+
+      const achievements = [
+        ...defeatAchievements,
+        ...deathAchievements
+      ];
+
+      // 5msごとにけいけんち+1
+      setInterval(() => {
+        if (document.hidden) return;
+
+        exp++;
+        updateScreen();
+      }, 5);
+
+      function levelUp() {
+        let leveledUp = false;
+
+        while (exp >= requiredExp) {
+          exp -= requiredExp;
+
+          level++;
+          magic++;
+          leveledUp = true;
+
+          // 10レベルごとにMAX HP +1
+          if (level % 10 === 0) {
+            playerMaxHp++;
+          }
+
+          requiredExp = level * 10;
+        }
+
+        // 1レベル以上あがったときだけHPぜんかい
+        if (leveledUp) {
+          playerHp = playerMaxHp;
+
+          happyMezapechi();
+        }
+
+        updateScreen();
+      }
+
+      function updateScreen() {
+        let attack = magic + hammer;
+
+        // メイン
+        document.getElementById("level").textContent = level;
+        document.getElementById("attack").textContent = attack;
+        document.getElementById("exp").textContent = exp;
+        document.getElementById("requiredExp").textContent = requiredExp;
+
+        // メニュー
+        document.getElementById("menuMoney").textContent = money;
+
+        // ステータス
+        document.getElementById("statusLevel").textContent = level;
+        document.getElementById("playerMaxHp").textContent = playerMaxHp;
+        document.getElementById("statusMagic").textContent = magic;
+        document.getElementById("statusHammer").textContent = hammer;
+        document.getElementById("statusAttack").textContent = attack;
+
+        // きょうか
+        document.getElementById("upgradeMoney").textContent = money;
+        document.getElementById("hammer").textContent = hammer;
+        document.getElementById("hammerCost").textContent = hammerCost;
+
+        //ゲージ
+        document.getElementById("mainPlayerHp").textContent = playerHp;
+        document.getElementById("mainPlayerMaxHp").textContent = playerMaxHp;
+
+        const hpPercent =
+          Math.max(0, Math.min(100, (playerHp / playerMaxHp) * 100));
+
+        document.getElementById("playerHpBar").style.width =
+          hpPercent + "%";
+      }
+
+      function attackEnemy() {
+        let attack = magic + hammer;
+
+        enemyHp -= attack;
+
+        if (enemyHp <= 0) {
+
+          // てきをたおしたときだけ増える
+          defeatCount++;
+          checkAchievements();
+          stageDefeatCount++;
+
+          // 10たいごとにHPぜんかい
+          if (
+            stageDefeatCount > 0 &&
+            stageDefeatCount % 10 === 0 &&
+            stageDefeatCount < requiredStageDefeats
+          ) {
+            playerHp = playerMaxHp;
+          }
+
+          if (enemyName === "ボス") {
+            money += 10;
+
+            document.getElementById("battleMessage").textContent =
+              "ボスをたおした！ 10ギルをてにいれた！";
+          } else {
+            money += 1;
+
+            document.getElementById("battleMessage").textContent =
+              "てきをたおした！ 1ギルをてにいれた！";
+          }
+
+          checkStageClear();
+
+          // つぎのてき
+          spawnEnemy();
+
+          updateScreen();
+
+          // このターンで敵を倒した
+          return true;
+        }
+
+        document.getElementById("enemyHp").textContent = enemyHp;
+
+        // このターンではまだ敵を倒していない
+        return false;
+      }
+
+      function enemyAttackPlayer() {
+        if (isDead) return;
+
+        playerHp -= enemyAttack;
+
+        if (playerHp <= 0) {
+          playerHp = 0;
+          deathCount++;
+          isDead = true;
+
+          deadMezapechi();
+          checkAchievements();
+
+          document.getElementById("battleMessage").textContent =
+            "めざぺちはたおれた！";
+
+          stageDefeatCount = 0;
+          spawnEnemy();
+          revivePlayer();
+        }
+      }
+
+      function revivePlayer() {
+        let reviveTime = 3;
+
+        document.getElementById("battleMessage").textContent =
+          "ふっかつまで：" + reviveTime;
+
+        const reviveTimer = setInterval(() => {
+          reviveTime--;
+
+          if (reviveTime > 0) {
+            document.getElementById("battleMessage").textContent =
+              "ふっかつまで：" + reviveTime;
+          } else {
+            clearInterval(reviveTimer);
+
+            playerHp = playerMaxHp;
+            isDead = false;
+            reviveMezapechi();
+
+            document.getElementById("battleMessage").textContent =
+              "めざぺちはふっかつした！";
+          }
+        }, 1000);
+      }
+
+      function upgradeHammer() {
+        while (money >= hammerCost) {
+          money -= hammerCost;
+          hammer++;
+        }
+
+        updateScreen();
+        saveGame();
+      }
+
+      function checkStageClear() {
+        if (stageDefeatCount < requiredStageDefeats) {
+          return;
+        }
+
+        stageDefeatCount = 0;
+        playerHp = playerMaxHp;
+
+        // むげんではステージだけ増えつづける
+        if (isInfinite) {
+          stage++;
+          updateProgress();
+          return;
+        }
+
+        // つぎのステージ
+        if (stage < 100) {
+          stage++;
+        }
+
+        // ステージ100のつぎはつぎのエリア
+        else if (area < 50) {
+          area++;
+          stage = 1;
+        }
+
+        // インフェルノ エリア50 ステージ100のつぎ
+        else if (difficulty === difficultyNames.length - 1) {
+          isInfinite = true;
+          area = 0;
+          stage = 1;
+        }
+
+        // つぎのなんいど
+        else {
+          difficulty++;
+          area = 1;
+          stage = 1;
+        }
+
+        updateProgress();
+      }
+
+
+      function updateProgress() {
+        if (isInfinite) {
+          document.getElementById("difficulty").textContent = "むげん";
+          document.getElementById("area").textContent = "-";
+          document.getElementById("stage").textContent = stage;
+        } else {
+          document.getElementById("difficulty").textContent =
+            difficultyNames[difficulty];
+
+          document.getElementById("area").textContent = area;
+          document.getElementById("stage").textContent = stage;
+        }
+      }
+
+      function spawnEnemy() {
+        let clearedStages =
+          difficulty * 50 * 100 +
+          (area - 1) * 100 +
+          (stage - 1);
+
+        let progressBonus =
+          clearedStages * 5 +
+          (difficulty * 49 + (area - 1)) * 10 +
+          difficulty * 20;
+
+        // 10たいめはボス
+        if (stageDefeatCount === requiredStageDefeats - 1) {
+          enemyName = "ボス";
+
+          enemyMaxHp = 30 + progressBonus;
+          enemyAttack = 3 + progressBonus;
+        } else {
+          const mobs = ["モブA", "モブB", "モブC"];
+          enemyName = mobs[Math.floor(Math.random() * mobs.length)];
+
+          if (enemyName === "モブA") {
+            enemyMaxHp = 10 + progressBonus;
+            enemyAttack = 1 + progressBonus;
+          }
+
+          if (enemyName === "モブB") {
+            enemyMaxHp = 15 + progressBonus;
+            enemyAttack = 1 + progressBonus;
+          }
+
+          if (enemyName === "モブC") {
+            enemyMaxHp = 8 + progressBonus;
+            enemyAttack = 2 + progressBonus;
+          }
+        }
+
+        enemyHp = enemyMaxHp;
+
+        document.getElementById("enemyName").textContent = enemyName;
+        document.getElementById("enemyHp").textContent = enemyHp;
+        updateBossProgress();
+      }
+
+      function updateBossProgress() {
+        const remaining = requiredStageDefeats - 1 - stageDefeatCount;
+
+        if (enemyName === "ボス") {
+          document.getElementById("bossProgress").textContent =
+            "ボス！";
+        } else {
+          document.getElementById("bossProgress").textContent =
+            "ボスまであと " + remaining + "たい";
+        }
+      }
+
+      function saveGame() {
+
+        // データ削除中はぜったい保存しない
+        if (isResetting) return;
+
+        const saveData = {
+          level,
+          magic,
+          hammer,
+          exp,
+          requiredExp,
+          playerMaxHp,
+          playerHp,
+          enemyAttack,
+          enemyMaxHp,
+          enemyHp,
+          defeatCount,
+          deathCount,
+          money,
+          hammerCost,
+          difficulty,
+          area,
+          stage,
+          stageDefeatCount,
+          isInfinite,
+          bgmOn,
+          seOn,
+          unlockedAchievements,
+          lastSaveTime: Date.now(),
+        };
+
+        localStorage.setItem(
+          "mezapechiSave",
+          JSON.stringify(saveData)
+        );
+      }
+
+      function loadGame() {
+        const saveData = localStorage.getItem("mezapechiSave");
+
+        if (!saveData) {
+          spawnEnemy();
+          return;
+        }
+
+        let data;
+
+        try {
+          data = JSON.parse(saveData);
+        } catch (error) {
+          console.error("セーブデータの読み込みに失敗しました", error);
+
+          localStorage.removeItem("mezapechiSave");
+          localStorage.removeItem("mezapechiAwaySince");
+
+          spawnEnemy();
+          return;
+        }
+
+        level = data.level;
+        magic = data.magic;
+        hammer = data.hammer;
+        exp = data.exp;
+        requiredExp = data.requiredExp;
+
+        playerMaxHp = data.playerMaxHp;
+        playerHp = data.playerHp;
+
+        enemyAttack = data.enemyAttack;
+        enemyMaxHp = data.enemyMaxHp;
+        enemyHp = data.enemyHp;
+
+        defeatCount = data.defeatCount;
+        deathCount = data.deathCount;
+
+        money = data.money;
+        hammerCost = data.hammerCost;
+
+        difficulty = data.difficulty;
+        area = data.area;
+        stage = data.stage;
+        stageDefeatCount = data.stageDefeatCount;
+
+        isInfinite = data.isInfinite;
+
+        if (data.bgmOn !== undefined) {
+          bgmOn = data.bgmOn;
+        }
+
+        if (data.seOn !== undefined) {
+          seOn = data.seOn;
+        }
+        if (data.unlockedAchievements !== undefined) {
+          unlockedAchievements = data.unlockedAchievements;
+        }
+        const awaySince =
+          localStorage.getItem("mezapechiAwaySince");
+
+        if (awaySince !== null) {
+
+          // バックグラウンドに入ったまま
+          // ページ自体が再読み込みされた場合
+          localStorage.removeItem("mezapechiAwaySince");
+
+          const now = Date.now();
+          const offlineMs = now - Number(awaySince);
+
+          if (offlineMs >= 1000) {
+            applyOfflineProgress(offlineMs);
+          }
+        } else if (data.lastSaveTime !== undefined) {
+
+          // 普通にファイルを閉じてから開き直した場合
+          const now = Date.now();
+          const offlineMs = now - data.lastSaveTime;
+
+          if (offlineMs >= 5000) {
+            applyOfflineProgress(offlineMs);
+          }
+        }
+      }
+
+
+      // 100msごとにじどうせんとう
+      setInterval(() => {
+        if (document.hidden) return;
+        if (isDead) return;
+
+        // HPがおかしく0以下になっていたら復活
+        if (playerHp <= 0) {
+          playerHp = playerMaxHp;
+          updateScreen();
+          return;
+        }
+
+        // 敵がおかしく0以下なら次の敵
+        if (enemyHp <= 0) {
+          spawnEnemy();
+          return;
+        }
+
+        const defeated = attackEnemy();
+
+        // 倒したターンは反撃させない
+        if (!defeated) {
+          enemyAttackPlayer();
+        }
+
+        updateScreen();
+      }, 100);
+
+      setInterval(() => {
+        if (!document.hidden) {
+          saveGame();
+        }
+      }, 1000);
+
+      loadGame();
+
+      if (playerHp <= 0) {
+        playerHp = playerMaxHp;
+        isDead = false;
+      }
+
+      checkAchievements();
+
+      updateScreen();
+      updateProgress();
+      updateAchievements();
+
+      document.getElementById("enemyHp").textContent = enemyHp;
+
+      function showScreen(screenId) {
+        document.getElementById("mainScreen").style.display = "none";
+        document.getElementById("menuScreen").style.display = "none";
+        document.getElementById("statusScreen").style.display = "none";
+        document.getElementById("upgradeScreen").style.display = "none";
+        document.getElementById("achievementScreen").style.display = "none";
+        document.getElementById("titleScreen").style.display = "none";
+        document.getElementById("settingsScreen").style.display = "none";
+
+        document.getElementById(screenId).style.display = "block";
+
+        updateScreen();
+      }
+
+      let resetStep = 0;
+
+      function startResetGame() {
+        resetStep = 1;
+
+        document.getElementById("deleteButton").style.display = "none";
+        document.getElementById("resetConfirm").style.display = "block";
+
+        document.getElementById("resetMessage").textContent =
+          "セーブデータをけしますか？";
+      }
+
+      function resetYes() {
+        if (resetStep === 1) {
+          resetStep = 2;
+
+          document.getElementById("resetMessage").textContent =
+            "ほんとうにけしますか？";
+
+          return;
+        }
+
+        if (resetStep === 2) {
+          isResetting = true;
+
+          // セーブを完全に削除
+          localStorage.removeItem("mezapechiSave");
+          localStorage.removeItem("mezapechiAwaySince");
+
+          // ゲームデータを初期状態へ
+          level = 1;
+          magic = 1;
+          hammer = 1;
+          exp = 0;
+          requiredExp = 10;
+
+          playerMaxHp = 200;
+          playerHp = playerMaxHp;
+
+          defeatCount = 0;
+          deathCount = 0;
+          unlockedAchievements = [];
+
+          money = 0;
+          hammerCost = 10;
+
+          difficulty = 0;
+          area = 1;
+          stage = 1;
+
+          stageDefeatCount = 0;
+          isInfinite = false;
+          isDead = false;
+
+          // 新しい最初の敵
+          spawnEnemy();
+
+          // おるすばん・通知も消す
+          document.getElementById("offlineResult").style.display = "none";
+          document.getElementById("achievementMessage").textContent = "";
+          document.getElementById("battleMessage").textContent = "";
+
+          // リセット確認画面を閉じる
+          resetStep = 0;
+          document.getElementById("resetConfirm").style.display = "none";
+          document.getElementById("deleteButton").style.display = "inline-block";
+
+          updateScreen();
+          updateProgress();
+          updateAchievements();
+
+          // ここから再びセーブ可能
+          isResetting = false;
+
+          // Lv.1の新しい状態を保存
+          saveGame();
+
+          // メイン画面へ
+          showScreen("mainScreen");
+        }
+      }
+
+      function resetNo() {
+        resetStep = 0;
+
+        document.getElementById("resetConfirm").style.display = "none";
+        document.getElementById("deleteButton").style.display = "inline-block";
+      }
+
+      function toggleBgm() {
+        bgmOn = !bgmOn;
+
+        document.getElementById("bgmButton").textContent =
+          bgmOn ? "オン" : "オフ";
+
+        saveGame();
+      }
+
+      function toggleSe() {
+        seOn = !seOn;
+
+        document.getElementById("seButton").textContent =
+          seOn ? "オン" : "オフ";
+
+        saveGame();
+      }
+
+      function checkAchievements() {
+        achievements.forEach(achievement => {
+
+          // すでにとっていたら何もしない
+          if (unlockedAchievements.includes(achievement.id)) {
+            return;
+          }
+
+          let current = 0;
+
+          if (achievement.type === "defeat") {
+            current = defeatCount;
+          }
+
+          if (achievement.type === "death") {
+            current = deathCount;
+          }
+
+          if (current >= achievement.required) {
+            unlockedAchievements.push(achievement.id);
+
+            if (isOfflineProgress) {
+              offlineAchievements.push(
+                achievement.text + "　HP +" + achievement.hp
+              );
+            }
+
+            playerMaxHp += achievement.hp;
+
+            // いきているときだけげんざいHPもふえる
+            if (!isDead) {
+              playerHp += achievement.hp;
+            }
+
+            showAchievementMessage(
+              "じっせきたっせい！ " +
+              achievement.text +
+              "　HP +" +
+              achievement.hp
+            );
+
+            saveGame();
+          }
+        });
+
+        updateAchievements();
+      }
+
+      function updateAchievements() {
+        document.getElementById("achievementDefeatCount").textContent =
+          defeatCount;
+
+        document.getElementById("achievementDeathCount").textContent =
+          deathCount;
+
+        const list = document.getElementById("achievementList");
+
+        list.innerHTML = "";
+
+        achievements.forEach(achievement => {
+          const unlocked =
+            unlockedAchievements.includes(achievement.id);
+
+          let current = 0;
+
+          if (achievement.type === "defeat") {
+            current = defeatCount;
+          }
+
+          if (achievement.type === "death") {
+            current = deathCount;
+          }
+
+          const p = document.createElement("p");
+
+          if (unlocked) {
+            p.textContent =
+              "✓ " +
+              achievement.text +
+              "　HP +" +
+              achievement.hp;
+          } else {
+            p.textContent =
+              "□ " +
+              achievement.text +
+              "　" +
+              current +
+              " / " +
+              achievement.required +
+              "　HP +" +
+              achievement.hp;
+          }
+
+          list.appendChild(p);
+        });
+      }
+
+      let achievementMessageTimer;
+
+      function showAchievementMessage(text) {
+        const message =
+          document.getElementById("achievementMessage");
+
+        message.textContent = text;
+
+        clearTimeout(achievementMessageTimer);
+
+        achievementMessageTimer = setTimeout(() => {
+          message.textContent = "";
+        }, 3000);
+      }
+
+      function wanderMezapechi() {
+        const wander = document.getElementById("mezapechiWander");
+        const direction = document.getElementById("mezapechiDirection");
+
+        if (!wander || !direction) return;
+
+        // たおれているあいだは移動しない
+        if (isDead) {
+          setTimeout(wanderMezapechi, 1000);
+          return;
+        }
+
+        // iPhoneサイズでは横移動しない
+        if (window.innerWidth <= 600) {
+          wander.style.transform = "translateX(0)";
+          direction.classList.remove("faceRight");
+          return;
+        }
+
+        // PCでは今まで通りふらふら
+        const mezapechiWidth = wander.offsetWidth;
+
+        const maxMove = Math.max(
+          0,
+          (window.innerWidth - mezapechiWidth) / 2 - 10
+        );
+
+        const x = (Math.random() * 2 - 1) * maxMove;
+
+        if (x > 5) {
+          direction.classList.add("faceRight");
+        } else if (x < -5) {
+          direction.classList.remove("faceRight");
+        }
+
+        wander.style.transform = `translateX(${x}px)`;
+
+        const nextMove = 3000 + Math.random() * 9000;
+        setTimeout(wanderMezapechi, nextMove);
+      }
+
+      wanderMezapechi();
+
+      function wanderMiniMezapechi() {
+        const mezapechi = document.getElementById("miniMezapechi");
+        const area = document.querySelector(".mini-mezapechi-area");
+
+        if (!mezapechi || !area) return;
+
+        const maxX = area.clientWidth - mezapechi.offsetWidth;
+        const currentX = parseFloat(mezapechi.style.left) || 0;
+
+        const nextX = Math.random() * maxX;
+
+        // 行く方向を向く
+        if (nextX > currentX) {
+          mezapechi.classList.add("face-right");
+        } else {
+          mezapechi.classList.remove("face-right");
+        }
+
+        mezapechi.style.left = `${nextX}px`;
+
+        // 次のお散歩まで3～10秒
+        const nextMove = 3000 + Math.random() * 7000;
+
+        setTimeout(wanderMiniMezapechi, nextMove);
+      }
+
+      wanderMiniMezapechi();
+
+      function happyMezapechi() {
+        const pechi = document.getElementById("mezapechiHappy");
+
+        pechi.classList.remove("happy");
+
+        void pechi.offsetWidth;
+
+        pechi.classList.add("happy");
+
+        // ﾋﾟｮﾝﾋﾟｮﾝﾋﾟｮﾝが終わったら解除
+        setTimeout(() => {
+          pechi.classList.remove("happy");
+        }, 900);
+      }
+
+      function deadMezapechi() {
+        const pechi = document.getElementById("mezapechiHappy");
+        const direction = document.getElementById("mezapechiDirection");
+        const wander = document.getElementById("mezapechiWander");
+
+        pechi.classList.remove("happy");
+        pechi.classList.remove("attackLeft", "attackRight");
+
+        // 死んだ瞬間の横位置で完全停止
+        const currentTransform =
+          getComputedStyle(wander).transform;
+
+        wander.style.transition = "none";
+        wander.style.transform = currentTransform;
+
+        // 向きに合わせて仰向けに倒れる
+        if (direction.classList.contains("faceRight")) {
+          pechi.classList.add("deadRight");
+        } else {
+          pechi.classList.add("deadLeft");
+        }
+      }
+
+      function reviveMezapechi() {
+        const pechi = document.getElementById("mezapechiHappy");
+        const wander = document.getElementById("mezapechiWander");
+
+        pechi.classList.remove("deadLeft");
+        pechi.classList.remove("deadRight");
+
+        // 横移動を再開できるように戻す
+        wander.style.transition = "transform 2s ease-in-out";
+      }
+
+      function attackMezapechi() {
+        if (document.hidden) return;
+        if (isDead) return;
+
+        const pechi = document.getElementById("mezapechiHappy");
+        const direction = document.getElementById("mezapechiDirection");
+
+        pechi.classList.remove("attackLeft", "attackRight");
+        void pechi.offsetWidth;
+
+        if (direction.classList.contains("faceRight")) {
+          pechi.classList.add("attackRight");
+        } else {
+          pechi.classList.add("attackLeft");
+        }
+
+        setTimeout(() => {
+          pechi.classList.remove("attackLeft", "attackRight");
+        }, 400);
+      }
+
+      function scheduleNextAttack() {
+        // 5～9秒のどこか
+        const nextAttack = 5000 + Math.random() * 4000;
+
+        setTimeout(() => {
+          attackMezapechi();
+          scheduleNextAttack();
+        }, nextAttack);
+      }
+
+      scheduleNextAttack();
+
+      function applyOfflineBattle(offlineMs) {
+        // 100ms = 1戦闘ターン
+        let turns = Math.floor(offlineMs / 100);
+
+        if (turns <= 0) return;
+
+        const attack = magic + hammer;
+
+        while (turns > 0) {
+
+          // --------------------
+          // しんでいるとき
+          // --------------------
+          if (isDead || playerHp <= 0) {
+            // ふっかつには3びょう = 30ターン
+            if (turns < 30) {
+              break;
+            }
+
+            turns -= 30;
+            playerHp = playerMaxHp;
+            isDead = false;
+          }
+
+          // --------------------
+          // このてきをたおすのに
+          // ひつようなこうげきかいすう
+          // --------------------
+          const attacksNeeded =
+            Math.ceil(enemyHp / attack);
+
+          // のこりじかんではたおせない
+          if (turns < attacksNeeded) {
+            const possibleAttacks = turns;
+
+            enemyHp -= attack * possibleAttacks;
+
+            // さいごまでてきはしなないので
+            // こうげきされたぶんだけダメージ
+            playerHp -= enemyAttack * possibleAttacks;
+
+            turns = 0;
+
+            // そのとちゅうでぺちがしんでいたか
+            if (playerHp <= 0) {
+              playerHp = 0;
+              deathCount++;
+              isDead = true;
+
+              checkAchievements();
+
+              stageDefeatCount = 0;
+              spawnEnemy();
+            }
+
+            break;
+          }
+
+          // --------------------
+          // てきをたおすまえに
+          // ぺちがしぬかチェック
+          // --------------------
+
+          // さいごのこうげきでは
+          // てきはしぬので反撃されない
+          const enemyCounterAttacks =
+            Math.max(0, attacksNeeded - 1);
+
+          // 何回の反撃でぺちがしぬか
+          const hitsUntilDeath =
+            Math.ceil(playerHp / enemyAttack);
+
+          if (
+            enemyCounterAttacks > 0 &&
+            hitsUntilDeath <= enemyCounterAttacks
+          ) {
+            // ぺちがしぬまでに行える攻撃回数
+            const attacksBeforeDeath =
+              hitsUntilDeath;
+
+            // そのぶん時間をすすめる
+            turns -= attacksBeforeDeath;
+
+            // てきHPをへらす
+            enemyHp -=
+              attack * attacksBeforeDeath;
+
+            // ぺち死亡
+            playerHp = 0;
+            deathCount++;
+            isDead = true;
+
+            checkAchievements();
+
+            stageDefeatCount = 0;
+            spawnEnemy();
+
+            continue;
+          }
+
+          // --------------------
+          // てきをたおせる
+          // --------------------
+
+          turns -= attacksNeeded;
+
+          playerHp -=
+            enemyAttack * enemyCounterAttacks;
+
+          enemyHp = 0;
+
+          defeatCount++;
+          stageDefeatCount++;
+
+          // ギル
+          if (enemyName === "ボス") {
+            money += 10;
+          } else {
+            money += 1;
+          }
+
+          checkAchievements();
+
+          // 10たいごとにHPぜんかい
+          if (
+            stageDefeatCount > 0 &&
+            stageDefeatCount % 10 === 0 &&
+            stageDefeatCount < requiredStageDefeats
+          ) {
+            playerHp = playerMaxHp;
+          }
+
+          checkStageClear();
+          spawnEnemy();
+        }
+      }
+
+      function applyOfflineProgress(offlineMs) {
+        if (offlineMs <= 0) return;
+
+        offlineAchievements = [];
+        isOfflineProgress = true;
+
+        // おるすばんまえを記録
+        const beforeExp = exp;
+        const beforeDefeats = defeatCount;
+        const beforeDeaths = deathCount;
+        const beforeMoney = money;
+
+        let beforeProgress;
+
+        if (isInfinite) {
+          beforeProgress =
+            "むげん ステージ" + stage;
+        } else {
+          beforeProgress =
+            difficultyNames[difficulty] +
+            " エリア" + area +
+            " ステージ" + stage;
+        }
+
+        // オフライン中のけいけんち
+        const offlineExp = Math.floor(offlineMs / 5);
+        exp += offlineExp;
+
+        // オフライン中のせんとう
+        applyOfflineBattle(offlineMs);
+
+        isOfflineProgress = false;
+
+        updateScreen();
+        updateProgress();
+        updateAchievements();
+
+        document.getElementById("enemyHp").textContent = enemyHp;
+
+        // おるすばんけっか
+        showOfflineResult(
+          offlineMs,
+          exp - beforeExp,
+          defeatCount - beforeDefeats,
+          deathCount - beforeDeaths,
+          money - beforeMoney,
+          beforeProgress
+        );
+
+        saveGame();
+      }
+
+      function showOfflineResult(
+        offlineMs,
+        gainedExp,
+        gainedDefeats,
+        gainedDeaths,
+        gainedMoney,
+        beforeProgress
+      ) {
+        // 5秒未満なら表示しない
+        if (offlineMs < 1000) return;
+
+        const totalSeconds = Math.floor(offlineMs / 1000);
+
+        const days = Math.floor(totalSeconds / 86400);
+        const hours = Math.floor((totalSeconds % 86400) / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        let timeText = "";
+
+        if (days > 0) {
+          timeText += days + "にち ";
+        }
+
+        if (hours > 0) {
+          timeText += hours + "じかん ";
+        }
+
+        if (minutes > 0) {
+          timeText += minutes + "ふん ";
+        }
+
+        timeText += seconds + "びょう";
+
+        let afterProgress;
+
+        if (isInfinite) {
+          afterProgress =
+            "むげん ステージ" + stage;
+        } else {
+          afterProgress =
+            difficultyNames[difficulty] +
+            " エリア" + area +
+            " ステージ" + stage;
+        }
+
+        document.getElementById("offlineTime").textContent =
+          "おるすばん：" + timeText;
+
+        document.getElementById("offlineExp").textContent =
+          "けいけんち：+" + gainedExp.toLocaleString();
+
+        document.getElementById("offlineDefeats").textContent =
+          "たおした：+" + gainedDefeats.toLocaleString() + "たい";
+
+        document.getElementById("offlineDeaths").textContent =
+          "たおれた：+" + gainedDeaths.toLocaleString() + "かい";
+
+        document.getElementById("offlineMoney").textContent =
+          "ギル：+" + gainedMoney.toLocaleString();
+
+        document.getElementById("offlineProgress").textContent =
+          beforeProgress + " → " + afterProgress;
+
+        const achievementResult =
+          document.getElementById("offlineAchievements");
+
+        if (offlineAchievements.length > 0) {
+          achievementResult.innerHTML =
+            "じっせき：<br>" +
+            offlineAchievements.join("<br>");
+        } else {
+          achievementResult.textContent =
+            "じっせき：なし";
+        }
+
+        document.getElementById("offlineResult").style.display =
+          "block";
+      }
+
+      function closeOfflineResult() {
+        document.getElementById("offlineResult").style.display =
+          "none";
+      }
+
+      document.addEventListener("visibilitychange", () => {
+
+        // めざぺち画面から離れた
+        if (document.hidden) {
+
+          if (isResetting) return;
+
+          const now = Date.now();
+
+          // iPhoneにページを止められても残るように保存
+          localStorage.setItem(
+            "mezapechiAwaySince",
+            String(now)
+          );
+
+          saveGame();
+
+          return;
+        }
+
+        // めざぺち画面へ戻ってきた
+        const awaySince =
+          localStorage.getItem("mezapechiAwaySince");
+
+        if (awaySince === null) return;
+
+        // 先に消して二重計算を防ぐ
+        localStorage.removeItem("mezapechiAwaySince");
+
+        const now = Date.now();
+        const offlineMs = now - Number(awaySince);
+
+        if (offlineMs >= 5000) {
+          applyOfflineProgress(offlineMs);
+        }
+      });
+    </script>
+
+</body>
+
+</html>
