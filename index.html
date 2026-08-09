@@ -1784,6 +1784,9 @@
         const awaySince =
           localStorage.getItem("mezapechiAwaySince");
 
+        if (awaySince === null) return;
+
+        // 先に消して二重計算を防ぐ
         localStorage.removeItem("mezapechiAwaySince");
 
         const now = Date.now();
@@ -1795,6 +1798,27 @@
 
         updateScreen();
       }
+
+      // --------------------
+      // 別アプリへ行った / 戻ってきた
+      // --------------------
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          markAwayTime();
+        } else {
+          resumeFromAway();
+        }
+      });
+
+
+      // iPhoneホーム画面版用の保険
+      window.addEventListener("pagehide", () => {
+        markAwayTime();
+      });
+
+      window.addEventListener("pageshow", () => {
+        resumeFromAway();
+      });
     </script>
 
 </body>
