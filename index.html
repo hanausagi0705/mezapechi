@@ -525,6 +525,16 @@
     </div>
 
     <script>
+
+      window.addEventListener("error", (event) => {
+        const message = document.getElementById("battleMessage");
+
+        if (message) {
+          message.textContent =
+            "エラー：" + event.message;
+        }
+      });
+
       let level = 1;
       let magic = 1;
       let hammer = 1;
