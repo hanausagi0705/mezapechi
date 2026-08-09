@@ -1651,8 +1651,6 @@
         }
 
         isOfflineProgress = false;
-
-        isOfflineProgress = false;
         updateScreen();
         updateProgress();
         updateAchievements();
@@ -1757,79 +1755,94 @@
           "none";
       }
 
-      document.addEventListener("visibilitychange", () => {
+      // --------------------
+      // バックグラウンドへ行った時間を記録
+      // --------------------
+      function markAwayTime() {
+        if (isResetting) return;
 
-        // めざぺち画面から離れた
-        if (document.hidden) {
-
-          if (isResetting) return;
-
-          const now = Date.now();
-
-          // iPhoneにページを止められても残るように保存
+        // すでに記録済みなら上書きしない
+        // visibilitychange と pagehide が両方来ても
+        // 最初に離れた時間を残す
+        if (localStorage.getItem("mezapechiAwaySince") === null) {
           localStorage.setItem(
             "mezapechiAwaySince",
-            String(now)
+            String(Date.now())
           );
-
-          saveGame();
-
-          return;
         }
 
-        window.addEventListener("pageshow", () => {
-          const awaySince =
-            localStorage.getItem("mezapechiAwaySince");
+        saveGame();
+      }
 
-          if (awaySince === null) return;
 
-          localStorage.removeItem("mezapechiAwaySince");
+      // --------------------
+      // バックグラウンドから復帰
+      // --------------------
+      function resumeFromAway() {
+        if (isResetting) return;
 
-          const now = Date.now();
-          const offlineMs = now - Number(awaySince);
-
-          if (offlineMs >= 1000) {
-            applyOfflineProgress(offlineMs);
-          }
-
-          // 念のため通常戦闘へ戻れる状態にする
-          if (playerHp <= 0) {
-            playerHp = playerMaxHp;
-          }
-
-          isDead = false;
-
-          updateScreen();
-        });
-
-        window.addEventListener("pagehide", () => {
-          if (isResetting) return;
-
-          const now = Date.now();
-
-          localStorage.setItem(
-            "mezapechiAwaySince",
-            String(now)
-          );
-
-          saveGame();
-        });
-
-        // めざぺち画面へ戻ってきた
         const awaySince =
           localStorage.getItem("mezapechiAwaySince");
 
-        if (awaySince === null) return;
+        if (awaySince === null) {
+          return;
+        }
 
-        // 先に消して二重計算を防ぐ
+        // 先に消す
+        // pageshow / visibilitychange / focus が
+        // 続けて発生しても二重計算されない
         localStorage.removeItem("mezapechiAwaySince");
 
         const now = Date.now();
         const offlineMs = now - Number(awaySince);
 
-        if (offlineMs >= 5000) {
+        // 1秒以上離れていたらおるすばん計算
+        if (offlineMs >= 1000) {
           applyOfflineProgress(offlineMs);
         }
+
+        // iPhoneに復活タイマーを止められていても
+        // 必ず戦闘へ戻れるようにする
+        if (isDead || playerHp <= 0) {
+          playerHp = playerMaxHp;
+          isDead = false;
+          reviveMezapechi();
+
+          document.getElementById("battleMessage").textContent =
+            "めざぺちはふっかつした！";
+        }
+
+        updateScreen();
+      }
+
+
+      // --------------------
+      // 表示 / 非表示
+      // --------------------
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          markAwayTime();
+        } else {
+          resumeFromAway();
+        }
+      });
+
+
+      // --------------------
+      // iPhoneホーム画面版用の保険
+      // --------------------
+      window.addEventListener("pagehide", () => {
+        markAwayTime();
+      });
+
+      window.addEventListener("pageshow", () => {
+        resumeFromAway();
+      });
+
+
+      // さらに復帰を拾う保険
+      window.addEventListener("focus", () => {
+        resumeFromAway();
       });
     </script>
 
