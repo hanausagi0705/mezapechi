@@ -1532,9 +1532,8 @@
 
             // 死亡実績の判定時だけ死亡扱いにする
             // 通常戦闘へ isDead=true を持ち越さない
-            isDead = true;
+            ideathCount++;
             checkAchievements();
-            isDead = false;
 
             stageDefeatCount = 0;
 
