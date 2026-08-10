@@ -600,7 +600,7 @@
 
       const deathAchievements = deathAchievementNumbers.map(number => ({
         id: "death" + number,
-        text: number + "かいたおれる",
+        text: number.toLocaleString() + "かいたおれる",
         type: "death",
         required: number,
         hp: number
@@ -617,7 +617,7 @@
 
       const defeatAchievements = defeatAchievementNumbers.map(number => ({
         id: "defeat" + number,
-        text: "てきを" + number + "たいたおす",
+        text: "てきを" + number.toLocaleString() + "たいたおす",
         type: "defeat",
         required: number,
         hp: number / 10
@@ -668,29 +668,29 @@
         let attack = magic + hammer;
 
         // メイン
-        document.getElementById("level").textContent = level;
-        document.getElementById("attack").textContent = attack;
-        document.getElementById("exp").textContent = exp;
-        document.getElementById("requiredExp").textContent = requiredExp;
+        document.getElementById("level").textContent = level.toLocaleString();
+        document.getElementById("attack").textContent = attack.toLocaleString();
+        document.getElementById("exp").textContent = exp.toLocaleString();
+        document.getElementById("requiredExp").textContent = requiredExp.toLocaleString();
 
         // メニュー
-        document.getElementById("menuMoney").textContent = money;
+        document.getElementById("menuMoney").textContent = money.toLocaleString();
 
         // ステータス
-        document.getElementById("statusLevel").textContent = level;
-        document.getElementById("playerMaxHp").textContent = playerMaxHp;
-        document.getElementById("statusMagic").textContent = magic;
-        document.getElementById("statusHammer").textContent = hammer;
-        document.getElementById("statusAttack").textContent = attack;
+        document.getElementById("statusLevel").textContent = level.toLocaleString();
+        document.getElementById("playerMaxHp").textContent = playerMaxHp.toLocaleString();
+        document.getElementById("statusMagic").textContent = magic.toLocaleString();
+        document.getElementById("statusHammer").textContent = hammer.toLocaleString();
+        document.getElementById("statusAttack").textContent = attack.toLocaleString();
 
         // きょうか
-        document.getElementById("upgradeMoney").textContent = money;
-        document.getElementById("hammer").textContent = hammer;
-        document.getElementById("hammerCost").textContent = hammerCost;
+        document.getElementById("upgradeMoney").textContent = money.toLocaleString();
+        document.getElementById("hammer").textContent = hammer.toLocaleString();
+        document.getElementById("hammerCost").textContent = hammerCost.toLocaleString();
 
         //ゲージ
-        document.getElementById("mainPlayerHp").textContent = playerHp;
-        document.getElementById("mainPlayerMaxHp").textContent = playerMaxHp;
+        document.getElementById("mainPlayerHp").textContent = playerHp.toLocaleString();
+        document.getElementById("mainPlayerMaxHp").textContent = playerMaxHp.toLocaleString();
 
         const hpPercent =
           Math.max(0, Math.min(100, (playerHp / playerMaxHp) * 100));
@@ -744,7 +744,8 @@
           return true;
         }
 
-        document.getElementById("enemyHp").textContent = enemyHp;
+        document.getElementById("enemyHp").textContent =
+          enemyHp.toLocaleString();
 
         // このターンではまだ敵を倒していない
         return false;
@@ -905,7 +906,8 @@
         enemyHp = enemyMaxHp;
 
         document.getElementById("enemyName").textContent = enemyName;
-        document.getElementById("enemyHp").textContent = enemyHp;
+        document.getElementById("enemyHp").textContent =
+          enemyHp.toLocaleString();
         updateBossProgress();
       }
 
@@ -1092,7 +1094,8 @@
       updateProgress();
       updateAchievements();
 
-      document.getElementById("enemyHp").textContent = enemyHp;
+      document.getElementById("enemyHp").textContent =
+        enemyHp.toLocaleString();
 
       function showScreen(screenId) {
         document.getElementById("mainScreen").style.display = "none";
@@ -1238,7 +1241,7 @@
 
             if (isOfflineProgress) {
               offlineAchievements.push(
-                achievement.text + "　HP +" + achievement.hp
+                achievement.text + "　HP +" + achievement.hp.toLocaleString()
               );
             }
 
@@ -1253,7 +1256,7 @@
               "じっせきたっせい！ " +
               achievement.text +
               "　HP +" +
-              achievement.hp
+              achievement.hp.toLocaleString()
             );
 
             if (!isOfflineProgress) {
@@ -1267,10 +1270,10 @@
 
       function updateAchievements() {
         document.getElementById("achievementDefeatCount").textContent =
-          defeatCount;
+          defeatCount.toLocaleString();
 
         document.getElementById("achievementDeathCount").textContent =
-          deathCount;
+          deathCount.toLocaleString();
 
         const list = document.getElementById("achievementList");
 
@@ -1297,17 +1300,17 @@
               "✓ " +
               achievement.text +
               "　HP +" +
-              achievement.hp;
+              achievement.hp.toLocaleString()
           } else {
             p.textContent =
               "□ " +
               achievement.text +
               "　" +
-              current +
+              current.toLocaleString() +
               " / " +
-              achievement.required +
-              "　HP +" +
-              achievement.hp;
+              achievement.required.toLocaleString()
+            "　HP +" +
+              achievement.hp.toLocaleString()
           }
 
           list.appendChild(p);
@@ -1658,7 +1661,8 @@
         updateProgress();
         updateAchievements();
 
-        document.getElementById("enemyHp").textContent = enemyHp;
+        document.getElementById("enemyHp").textContent =
+          enemyHp.toLocaleString();
 
         // おるすばんけっか
         showOfflineResult(
