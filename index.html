@@ -463,7 +463,20 @@
 
       <hr>
 
-      <div id="achievementList"></div>
+      <details>
+        <summary>たおしたかず</summary>
+        <div id="defeatAchievementList"></div>
+      </details>
+
+      <details>
+        <summary>たおれたかず</summary>
+        <div id="deathAchievementList"></div>
+      </details>
+
+      <details>
+        <summary>なんいどクリア</summary>
+        <div id="difficultyAchievementList"></div>
+      </details>
 
       <button onclick="showScreen('menuScreen')">
         もどる
@@ -575,27 +588,79 @@
         "インフェルノ"
       ];
 
-      function makeRange(start, end, step) {
-        const numbers = [];
+      const difficultyClearMagicRewards = [
+        1000,   // ノーマル
+        2500,   // ハード
+        5000,   // ベリーハード
+        7500,   // エクストラ
+        10000   // インフェルノ
+      ];
 
-        for (let i = start; i <= end; i += step) {
-          numbers.push(i);
+      function unlockDifficultyClearAchievement(difficultyIndex) {
+        const id = "difficultyClear" + difficultyIndex;
+
+        // すでに達成していたら何もしない
+        if (unlockedAchievements.includes(id)) {
+          return;
         }
 
-        return numbers;
+        const reward =
+          difficultyClearMagicRewards[difficultyIndex];
+
+        const text =
+          difficultyNames[difficultyIndex] +
+          "をクリアする";
+
+        unlockedAchievements.push(id);
+
+        magic += reward;
+
+        if (isOfflineProgress) {
+          offlineAchievements.push(
+            text +
+            "　まりょく +" +
+            reward.toLocaleString()
+          );
+        }
+
+        showAchievementMessage(
+          "じっせきたっせい！ " +
+          text +
+          "　まりょく +" +
+          reward.toLocaleString()
+        );
+
+        if (!isOfflineProgress) {
+          saveGame();
+        }
+      }
+
+      function getAchievementHp(number) {
+        if (number <= 100) {
+          return 1;
+        }
+
+        if (number <= 10000) {
+          return 10;
+        }
+
+        return 100;
       }
 
       const deathAchievementNumbers = [
         1,
-        ...makeRange(5, 50, 5),
-        ...makeRange(60, 100, 10),
-        ...makeRange(150, 500, 50),
-        ...makeRange(600, 1000, 100),
-        ...makeRange(1500, 5000, 500),
-        ...makeRange(6000, 10000, 1000),
-        ...makeRange(15000, 50000, 5000),
-        ...makeRange(60000, 100000, 10000),
-        ...makeRange(150000, 1000000, 50000)
+        5,
+        10,
+        50,
+        100,
+        500,
+        1000,
+        5000,
+        10000,
+        50000,
+        100000,
+        500000,
+        1000000
       ];
 
       const deathAchievements = deathAchievementNumbers.map(number => ({
@@ -603,16 +668,19 @@
         text: number.toLocaleString() + "かいたおれる",
         type: "death",
         required: number,
-        hp: number
+        hp: getAchievementHp(number)
       }));
 
       const defeatAchievementNumbers = [
         100,
         500,
-        ...makeRange(1000, 5000, 1000),
-        ...makeRange(10000, 20000, 5000),
-        ...makeRange(30000, 50000, 10000),
-        ...makeRange(100000, 1000000, 100000)
+        1000,
+        5000,
+        10000,
+        50000,
+        100000,
+        500000,
+        1000000
       ];
 
       const defeatAchievements = defeatAchievementNumbers.map(number => ({
@@ -620,7 +688,7 @@
         text: "てきを" + number.toLocaleString() + "たいたおす",
         type: "defeat",
         required: number,
-        hp: number / 10
+        hp: getAchievementHp(number)
       }));
 
       const achievements = [
@@ -815,6 +883,12 @@
 
         stageDefeatCount = 0;
         playerHp = playerMaxHp;
+
+        // エリア50・ステージ100を突破したら
+        // その難易度のクリア実績
+        if (!isInfinite && area === 50 && stage === 100) {
+          unlockDifficultyClearAchievement(difficulty);
+        }
 
         // むげんではステージだけ増えつづける
         if (isInfinite) {
@@ -1218,6 +1292,61 @@
         saveGame();
       }
 
+      function checkInfiniteAchievement(type, current) {
+        let required = 10000000; // 1,000万から開始
+
+        while (required <= current) {
+          const id = type + required;
+
+          if (!unlockedAchievements.includes(id)) {
+            unlockedAchievements.push(id);
+
+            let text = "";
+
+            if (type === "defeat") {
+              text =
+                "てきを" +
+                required.toLocaleString() +
+                "たいたおす";
+            }
+
+            if (type === "death") {
+              text =
+                required.toLocaleString() +
+                "かいたおれる";
+            }
+
+            const hp = 100;
+
+            if (isOfflineProgress) {
+              offlineAchievements.push(
+                text + "　HP +" + hp.toLocaleString()
+              );
+            }
+
+            playerMaxHp += hp;
+
+            if (!isDead) {
+              playerHp += hp;
+            }
+
+            showAchievementMessage(
+              "じっせきたっせい！ " +
+              text +
+              "　HP +" +
+              hp.toLocaleString()
+            );
+
+            if (!isOfflineProgress) {
+              saveGame();
+            }
+          }
+
+          // 1,000万 → 1億 → 10億 → …
+          required *= 10;
+        }
+      }
+
       function checkAchievements() {
         achievements.forEach(achievement => {
 
@@ -1265,6 +1394,10 @@
           }
         });
 
+        // 100万以降は桁が増えるごとに自動実績
+        checkInfiniteAchievement("defeat", defeatCount);
+        checkInfiniteAchievement("death", deathCount);
+
         updateAchievements();
       }
 
@@ -1275,9 +1408,18 @@
         document.getElementById("achievementDeathCount").textContent =
           deathCount.toLocaleString();
 
-        const list = document.getElementById("achievementList");
+        const defeatList =
+          document.getElementById("defeatAchievementList");
 
-        list.innerHTML = "";
+        const deathList =
+          document.getElementById("deathAchievementList");
+
+        const difficultyList =
+          document.getElementById("difficultyAchievementList");
+
+        defeatList.innerHTML = "";
+        deathList.innerHTML = "";
+        difficultyList.innerHTML = "";
 
         achievements.forEach(achievement => {
           const unlocked =
@@ -1300,7 +1442,7 @@
               "✓ " +
               achievement.text +
               "　HP +" +
-              achievement.hp.toLocaleString()
+              achievement.hp.toLocaleString();
           } else {
             p.textContent =
               "□ " +
@@ -1308,12 +1450,61 @@
               "　" +
               current.toLocaleString() +
               " / " +
-              achievement.required.toLocaleString()
-            "　HP +" +
-              achievement.hp.toLocaleString()
+              achievement.required.toLocaleString() +
+              "　HP +" +
+              achievement.hp.toLocaleString();
           }
 
-          list.appendChild(p);
+          if (achievement.type === "defeat") {
+            defeatList.appendChild(p);
+          }
+
+          if (achievement.type === "death") {
+            deathList.appendChild(p);
+          }
+        });
+
+        const defeatInfiniteNote =
+          document.createElement("p");
+
+        defeatInfiniteNote.textContent =
+          "※ 1,000,000いこうは、けたがふえるごとに HP +100";
+
+        defeatList.appendChild(defeatInfiniteNote);
+
+        const deathInfiniteNote =
+          document.createElement("p");
+
+        deathInfiniteNote.textContent =
+          "※ 1,000,000いこうは、けたがふえるごとに HP +100";
+
+        deathList.appendChild(deathInfiniteNote);
+
+        difficultyNames.forEach((name, index) => {
+          const id = "difficultyClear" + index;
+          const unlocked =
+            unlockedAchievements.includes(id);
+
+          const reward =
+            difficultyClearMagicRewards[index];
+
+          const p = document.createElement("p");
+
+          if (unlocked) {
+            p.textContent =
+              "✓ " +
+              name +
+              "をクリアする　まりょく +" +
+              reward.toLocaleString();
+          } else {
+            p.textContent =
+              "□ " +
+              name +
+              "をクリアする　まりょく +" +
+              reward.toLocaleString();
+          }
+
+          difficultyList.appendChild(p);
         });
       }
 
@@ -1489,8 +1680,6 @@
 
         if (turns <= 0) return;
 
-        const attack = magic + hammer;
-
         // おるすばん開始時に通常画面で倒れていた場合
         // 3秒ぶんを復活待ちとして消費する
         if (isDead || playerHp <= 0) {
@@ -1505,6 +1694,8 @@
         }
 
         while (turns > 0) {
+
+          const attack = magic + hammer;
 
           // この敵を倒すのに必要な攻撃回数
           const attacksNeeded =
