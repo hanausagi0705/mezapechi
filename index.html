@@ -793,15 +793,15 @@
           }
 
           if (enemyName === "ボス") {
-            money += 10;
+            money += 30;
 
             document.getElementById("battleMessage").textContent =
-              "ボスをたおした！ 10ギルをてにいれた！";
+              "ボスをたおした！ 30ギルをてにいれた！";
           } else {
-            money += 1;
+            money += 5;
 
             document.getElementById("battleMessage").textContent =
-              "てきをたおした！ 1ギルをてにいれた！";
+              "てきをたおした！ 5ギルをてにいれた！";
           }
 
           checkStageClear();
@@ -1785,9 +1785,9 @@
 
           // ギル
           if (enemyName === "ボス") {
-            money += 10;
+            money += 30;
           } else {
-            money += 1;
+            money += 5;
           }
 
           checkAchievements();
