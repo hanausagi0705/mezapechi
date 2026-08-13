@@ -326,7 +326,7 @@
       <p>
         けいけんち：
         <span id="exp">0</span> /
-        <span id="requiredExp">500</span>
+        <span id="requiredExp">100</span>
       </p>
 
       <button onclick="levelUp()">
@@ -543,7 +543,7 @@
       let magic = 1;
       let hammer = 1;
       let exp = 0;
-      let requiredExp = 500;
+      let requiredExp = 100;
 
       let playerMaxHp = 200;
       let playerHp = playerMaxHp;
@@ -719,7 +719,12 @@
             playerMaxHp++;
           }
 
-          requiredExp = Math.ceil(level / 1000) * 500;
+          if (level <= 10000) {
+            requiredExp = Math.ceil(level / 1000) * 100;
+          } else {
+            requiredExp =
+              1000 + Math.ceil((level - 10000) / 1000) * 500;
+          }
         }
 
         // 1レベル以上あがったときだけHPぜんかい
@@ -1219,7 +1224,7 @@
           magic = 1;
           hammer = 1;
           exp = 0;
-          requiredExp = 500;
+          requiredExp = 100;
 
           playerMaxHp = 200;
           playerHp = playerMaxHp;
