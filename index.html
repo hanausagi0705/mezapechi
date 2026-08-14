@@ -405,17 +405,25 @@
       <p>Lv.<span id="statusLevel">1</span></p>
 
       <p>
-        MAX HP：<span id="playerMaxHp">100</span>
+        MAX HP：<span id="playerMaxHp">100</span><br>
+        （<span id="playerMaxHpJapanese">100</span>）
       </p>
 
-      <p>まりょく：<span id="statusMagic">1</span></p>
+      <p>
+        まりょく：<span id="statusMagic">1</span><br>
+        （<span id="statusMagicJapanese">1</span>）
+      </p>
 
       <p>
         りーふらわー：+
-        <span id="statusHammer">1</span>
+        <span id="statusHammer">1</span><br>
+        （<span id="statusHammerJapanese">1</span>）
       </p>
 
-      <p>かりょく：<span id="statusAttack">2</span></p>
+      <p>
+        かりょく：<span id="statusAttack">2</span><br>
+        （<span id="statusAttackJapanese">2</span>）
+      </p>
 
       <button onclick="showScreen('menuScreen')">
         もどる
@@ -723,7 +731,7 @@
             requiredExp = Math.ceil(level / 1000) * 100;
           } else {
             requiredExp =
-              1000 + Math.ceil((level - 10000) / 1000) * 500;
+              1000 + Math.ceil((level - 10000) / 10000) * 500;
           }
         }
 
@@ -737,17 +745,109 @@
         updateScreen();
       }
 
+      function formatShortNumber(value) {
+        // 100万未満は普通の数字
+        if (value < 1000000) {
+          return Math.floor(value).toLocaleString();
+        }
+
+        // 100万 = a、10億 = b、1兆 = c……
+        const unitIndex =
+          Math.floor(Math.log10(value) / 3) - 2;
+
+        function getUnitName(index) {
+          let name = "";
+
+          while (index >= 0) {
+            name =
+              String.fromCharCode(97 + (index % 26)) + name;
+
+            index = Math.floor(index / 26) - 1;
+          }
+
+          return name;
+        }
+
+        const divisor =
+          Math.pow(1000, unitIndex + 2);
+
+        const shortValue =
+          Math.floor((value / divisor) * 100) / 100;
+
+        return shortValue + getUnitName(unitIndex);
+      }
+
+      function formatMoney(value) {
+        if (value > 999999999) {
+          return "999,999,999＋";
+        }
+
+        return Math.floor(value).toLocaleString();
+      }
+
+      function formatJapaneseNumber(value) {
+        value = Math.floor(value);
+
+        if (value === 0) {
+          return "0";
+        }
+
+        const units = [
+          "",
+          "万",
+          "億",
+          "兆",
+          "京",
+          "垓",
+          "秭",
+          "穣",
+          "溝",
+          "澗",
+          "正",
+          "載",
+          "極",
+          "恒河沙",
+          "阿僧祇",
+          "那由他",
+          "不可思議",
+          "無量大数"
+        ];
+
+        const parts = [];
+
+        while (value > 0) {
+          parts.push(value % 10000);
+          value = Math.floor(value / 10000);
+        }
+
+        let result = "";
+
+        for (let i = parts.length - 1; i >= 0; i--) {
+          if (parts[i] === 0) {
+            continue;
+          }
+
+          if (i >= units.length) {
+            return "無量大数をこえています";
+          }
+
+          result += parts[i].toLocaleString() + units[i];
+        }
+
+        return result;
+      }
+
       function updateScreen() {
         let attack = magic + hammer;
 
         // メイン
         document.getElementById("level").textContent = level.toLocaleString();
-        document.getElementById("attack").textContent = attack.toLocaleString();
-        document.getElementById("exp").textContent = exp.toLocaleString();
-        document.getElementById("requiredExp").textContent = requiredExp.toLocaleString();
+        document.getElementById("attack").textContent = formatShortNumber(attack);
+        document.getElementById("exp").textContent = formatShortNumber(exp);
+        document.getElementById("requiredExp").textContent = formatShortNumber(requiredExp);
 
         // メニュー
-        document.getElementById("menuMoney").textContent = money.toLocaleString();
+        document.getElementById("menuMoney").textContent = formatMoney(money);
 
         // ステータス
         document.getElementById("statusLevel").textContent = level.toLocaleString();
@@ -755,15 +855,26 @@
         document.getElementById("statusMagic").textContent = magic.toLocaleString();
         document.getElementById("statusHammer").textContent = hammer.toLocaleString();
         document.getElementById("statusAttack").textContent = attack.toLocaleString();
+        document.getElementById("playerMaxHpJapanese").textContent =
+          formatJapaneseNumber(playerMaxHp);
+
+        document.getElementById("statusMagicJapanese").textContent =
+          formatJapaneseNumber(magic);
+
+        document.getElementById("statusHammerJapanese").textContent =
+          formatJapaneseNumber(hammer);
+
+        document.getElementById("statusAttackJapanese").textContent =
+          formatJapaneseNumber(attack);
 
         // きょうか
-        document.getElementById("upgradeMoney").textContent = money.toLocaleString();
+        document.getElementById("upgradeMoney").textContent = formatMoney(money);
         document.getElementById("hammer").textContent = hammer.toLocaleString();
         document.getElementById("hammerCost").textContent = hammerCost.toLocaleString();
 
         //ゲージ
-        document.getElementById("mainPlayerHp").textContent = playerHp.toLocaleString();
-        document.getElementById("mainPlayerMaxHp").textContent = playerMaxHp.toLocaleString();
+        document.getElementById("mainPlayerHp").textContent = formatShortNumber(playerHp);
+        document.getElementById("mainPlayerMaxHp").textContent = formatShortNumber(playerMaxHp);
 
         const hpPercent =
           Math.max(0, Math.min(100, (playerHp / playerMaxHp) * 100));
@@ -818,7 +929,7 @@
         }
 
         document.getElementById("enemyHp").textContent =
-          enemyHp.toLocaleString();
+          formatShortNumber(enemyHp);
 
         // このターンではまだ敵を倒していない
         return false;
@@ -986,7 +1097,7 @@
 
         document.getElementById("enemyName").textContent = enemyName;
         document.getElementById("enemyHp").textContent =
-          enemyHp.toLocaleString();
+          formatShortNumber(enemyHp);
         updateBossProgress();
       }
 
@@ -1174,7 +1285,7 @@
       updateAchievements();
 
       document.getElementById("enemyHp").textContent =
-        enemyHp.toLocaleString();
+        formatShortNumber(enemyHp);
 
       function showScreen(screenId) {
         document.getElementById("mainScreen").style.display = "none";
@@ -1858,7 +1969,7 @@
         updateAchievements();
 
         document.getElementById("enemyHp").textContent =
-          enemyHp.toLocaleString();
+          formatShortNumber(enemyHp);
 
         // おるすばんけっか
         showOfflineResult(
