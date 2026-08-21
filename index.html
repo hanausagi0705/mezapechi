@@ -308,10 +308,25 @@
         <p id="offlineDefeats"></p>
         <p id="offlineDeaths"></p>
         <p id="offlineMoney"></p>
+        <p id="offlineImportantThings"></p>
         <p id="offlineProgress"></p>
         <p id="offlineAchievements"></p>
 
         <button onclick="closeOfflineResult()">
+          とじる
+        </button>
+
+        <hr>
+      </div>
+
+      <div id="specialImportantThingResult" style="display: none;">
+        <hr>
+
+        <h3>とくべつなものをみつけた！</h3>
+
+        <p id="specialImportantThingName"></p>
+
+        <button onclick="closeSpecialImportantThingResult()">
           とじる
         </button>
 
@@ -382,6 +397,10 @@
 
       <button onclick="showScreen('titleScreen')">
         しょうごう
+      </button>
+
+      <button onclick="showScreen('importantThingsScreen')">
+        大事なもの
       </button>
 
       <button onclick="showScreen('settingsScreen')">
@@ -492,6 +511,61 @@
 
     </div>
 
+    <!-- 大事なもの -->
+    <div id="importantThingsScreen" style="display: none;">
+
+      <h2>大事なもの</h2>
+
+      <details open>
+        <summary>もの</summary>
+
+        <p>
+          りーふらわーきょうかこうりつ：
+          +<span id="thingsBonus">0</span>%
+        </p>
+
+        <p>石ころ：<span id="importantStone">0</span>こ</p>
+        <p>ぬいぐるみ：<span id="importantPlush">0</span>こ</p>
+        <p>ペットボトル：<span id="importantPlasticBottle">0</span>こ</p>
+        <p>日々：<span id="importantDays">0</span>こ</p>
+      </details>
+
+      <details>
+        <summary>きおく</summary>
+
+        <p>
+          けいけんち：
+          +<span id="memoriesBonus">0</span>%
+        </p>
+
+        <p>旦那との思い出：<span id="memoryHusband">0</span>こ</p>
+        <p>ブルースちゃんとの思い出：<span id="memoryBruce">0</span>こ</p>
+        <p>虎徹との思い出：<span id="memoryKotetsu">0</span>こ</p>
+        <p>虎太郎との思い出：<span id="memoryKotaro">0</span>こ</p>
+      </details>
+
+      <details>
+        <summary>とくべつ</summary>
+
+        <p id="specialPinkCactus">？？？？？？</p>
+        <p id="specialSilverFlower">？？？？？？</p>
+        <p id="specialPairRing">？？？？？？</p>
+        <p id="specialEternalBondRing">？？？？？？</p>
+        <p id="specialLoveForHusband">？？？？？？</p>
+
+        <p>
+          ※ とくべつなものは、みつけると
+          それぞれちがうちからをくれます。
+        </p>
+      </details>
+
+      <br>
+
+      <button onclick="showScreen('menuScreen')">
+        もどる
+      </button>
+
+    </div>
 
     <!-- しょうごう -->
     <div id="titleScreen" style="display: none;">
@@ -551,6 +625,7 @@
       let magic = 1;
       let hammer = 1;
       let exp = 0;
+      let expFraction = 0;
       let requiredExp = 100;
 
       let playerMaxHp = 200;
@@ -567,7 +642,9 @@
       let unlockedAchievements = [];
 
       let money = 0;
+      let moneyFraction = 0;
       let hammerCost = 500;
+      let hammerFraction = 0;
 
       let difficulty = 0;
       let area = 1;
@@ -586,6 +663,437 @@
       let isResetting = false;
       let offlineAchievements = [];
 
+      // --------------------
+      // 大事なもの
+      // --------------------
+
+      let importantThings = {
+        things: {
+          stone: 0,
+          plush: 0,
+          plasticBottle: 0,
+          days: 0
+        },
+
+        memories: {
+          husband: 0,
+          bruce: 0,
+          kotetsu: 0,
+          kotaro: 0
+        },
+
+        special: {
+          pinkCactus: false,
+          silverFlower: false,
+          pairRing: false,
+          eternalBondRing: false,
+          loveForHusband: false
+        }
+      };
+
+      const normalImportantThingPool = [
+        ["things", "stone"],
+        ["things", "plush"],
+        ["things", "plasticBottle"],
+        ["things", "days"],
+        ["memories", "husband"],
+        ["memories", "bruce"],
+        ["memories", "kotetsu"],
+        ["memories", "kotaro"]
+      ];
+
+
+      function rollNormalImportantThing() {
+        // 0.1% = 1,000分の1
+        if (Math.random() >= 0.001) {
+          return;
+        }
+
+        // 8種類から完全ランダム
+        const selected =
+          normalImportantThingPool[
+          Math.floor(Math.random() * normalImportantThingPool.length)
+          ];
+
+        const category = selected[0];
+        const item = selected[1];
+
+        importantThings[category][item]++;
+      }
+
+      function showSpecialImportantThingResult(name) {
+        document.getElementById(
+          "specialImportantThingName"
+        ).textContent = name;
+
+        document.getElementById(
+          "specialImportantThingResult"
+        ).style.display = "block";
+      }
+
+
+      function closeSpecialImportantThingResult() {
+        document.getElementById(
+          "specialImportantThingResult"
+        ).style.display = "none";
+      }
+
+      function rollSpecialImportantThings() {
+
+        // ピンクのサボテン：100万分の1
+        if (
+          !importantThings.special.pinkCactus &&
+          Math.random() < 0.000001
+        ) {
+          const oldFinalMaxHp = getFinalMaxHp();
+
+          importantThings.special.pinkCactus = true;
+
+          const newFinalMaxHp = getFinalMaxHp();
+
+          // 増えたMAX HPぶん、現在HPも増やす
+          if (!isDead) {
+            playerHp += newFinalMaxHp - oldFinalMaxHp;
+          }
+          showSpecialImportantThingResult(
+            "ピンクのサボテン"
+          );
+        }
+
+        // 銀細工のお花：100万分の1
+        if (
+          !importantThings.special.silverFlower &&
+          Math.random() < 0.000001
+        ) {
+          importantThings.special.silverFlower = true;
+          showSpecialImportantThingResult(
+            "銀細工のお花"
+          );
+        }
+
+        // ペアリング：100万分の1
+        if (
+          !importantThings.special.pairRing &&
+          Math.random() < 0.000001
+        ) {
+          importantThings.special.pairRing = true;
+          showSpecialImportantThingResult(
+            "ペアリング"
+          );
+        }
+
+        // エタバンリング：100万分の1
+        if (
+          !importantThings.special.eternalBondRing &&
+          Math.random() < 0.000001
+        ) {
+          importantThings.special.eternalBondRing = true;
+          showSpecialImportantThingResult(
+            "エタバンリング"
+          );
+        }
+
+        // 旦那への愛：1億分の1
+        if (
+          !importantThings.special.loveForHusband &&
+          Math.random() < 0.00000001
+        ) {
+          const oldFinalMaxHp = getFinalMaxHp();
+
+          importantThings.special.loveForHusband = true;
+
+          const newFinalMaxHp = getFinalMaxHp();
+
+          // 増えたMAX HPぶん、現在HPも増やす
+          if (!isDead) {
+            playerHp += newFinalMaxHp - oldFinalMaxHp;
+          }
+          showSpecialImportantThingResult(
+            "旦那への愛"
+          );
+        }
+      }
+
+      // --------------------
+      // オフライン用・大事なもの一括抽選
+      // --------------------
+
+      function randomNormal() {
+        // 0は避ける
+        let u1 = Math.random();
+        let u2 = Math.random();
+
+        if (u1 === 0) {
+          u1 = Number.MIN_VALUE;
+        }
+
+        // Box-Muller法で標準正規乱数を作る
+        return Math.sqrt(-2 * Math.log(u1)) *
+          Math.cos(2 * Math.PI * u2);
+      }
+
+
+      function rollBinomialFast(trials, probability) {
+        if (trials <= 0 || probability <= 0) {
+          return 0;
+        }
+
+        if (probability >= 1) {
+          return trials;
+        }
+
+        const mean = trials * probability;
+
+        // 平均が小さい場合
+        // ポアソン分布で近似
+        if (mean < 30) {
+          const limit = Math.exp(-mean);
+
+          let product = 1;
+          let count = 0;
+
+          do {
+            count++;
+            product *= Math.random();
+          } while (product > limit);
+
+          return Math.min(trials, count - 1);
+        }
+
+        // 平均が大きい場合
+        // 正規分布で近似
+        const variance =
+          trials * probability * (1 - probability);
+
+        const result = Math.round(
+          mean + Math.sqrt(variance) * randomNormal()
+        );
+
+        return Math.max(
+          0,
+          Math.min(trials, result)
+        );
+      }
+
+
+      function rollOfflineImportantThings(defeats) {
+        if (defeats <= 0) {
+          return;
+        }
+
+        // --------------------
+        // もの・きおく
+        // 1体につき0.1%
+        // --------------------
+
+        const normalDrops =
+          rollBinomialFast(defeats, 0.001);
+
+        // 8種類へまとめてランダム配分
+        let remainingDrops = normalDrops;
+
+        for (let i = 0; i < normalImportantThingPool.length; i++) {
+          const [category, item] =
+            normalImportantThingPool[i];
+
+          // 最後の1種類には残りを全部入れる
+          if (i === normalImportantThingPool.length - 1) {
+            importantThings[category][item] +=
+              remainingDrops;
+
+            break;
+          }
+
+          const remainingTypes =
+            normalImportantThingPool.length - i;
+
+          const itemDrops =
+            rollBinomialFast(
+              remainingDrops,
+              1 / remainingTypes
+            );
+
+          importantThings[category][item] +=
+            itemDrops;
+
+          remainingDrops -= itemDrops;
+        }
+
+
+        // --------------------
+        // とくべつ
+        // --------------------
+
+        function hitAtLeastOnce(probability) {
+          // defeats回のうち1回以上当たる確率
+          return Math.random() <
+            1 - Math.pow(1 - probability, defeats);
+        }
+
+
+        // ピンクのサボテン：100万分の1
+        if (
+          !importantThings.special.pinkCactus &&
+          hitAtLeastOnce(0.000001)
+        ) {
+          const oldFinalMaxHp = getFinalMaxHp();
+
+          importantThings.special.pinkCactus = true;
+
+          const newFinalMaxHp = getFinalMaxHp();
+
+          if (!isDead) {
+            playerHp +=
+              newFinalMaxHp - oldFinalMaxHp;
+          }
+        }
+
+
+        // 銀細工のお花：100万分の1
+        if (
+          !importantThings.special.silverFlower &&
+          hitAtLeastOnce(0.000001)
+        ) {
+          importantThings.special.silverFlower = true;
+        }
+
+
+        // ペアリング：100万分の1
+        if (
+          !importantThings.special.pairRing &&
+          hitAtLeastOnce(0.000001)
+        ) {
+          importantThings.special.pairRing = true;
+        }
+
+
+        // エタバンリング：100万分の1
+        if (
+          !importantThings.special.eternalBondRing &&
+          hitAtLeastOnce(0.000001)
+        ) {
+          importantThings.special.eternalBondRing = true;
+        }
+
+
+        // 旦那への愛：1億分の1
+        if (
+          !importantThings.special.loveForHusband &&
+          hitAtLeastOnce(0.00000001)
+        ) {
+          const oldFinalMaxHp = getFinalMaxHp();
+
+          importantThings.special.loveForHusband = true;
+
+          const newFinalMaxHp = getFinalMaxHp();
+
+          if (!isDead) {
+            playerHp +=
+              newFinalMaxHp - oldFinalMaxHp;
+          }
+        }
+      }
+
+      function updateImportantThingsScreen() {
+
+        // --------------------
+        // もの
+        // --------------------
+
+        document.getElementById("importantStone").textContent =
+          importantThings.things.stone.toLocaleString();
+
+        document.getElementById("importantPlush").textContent =
+          importantThings.things.plush.toLocaleString();
+
+        document.getElementById("importantPlasticBottle").textContent =
+          importantThings.things.plasticBottle.toLocaleString();
+
+        document.getElementById("importantDays").textContent =
+          importantThings.things.days.toLocaleString();
+
+        document.getElementById("thingsBonus").textContent =
+          (getThingsBonusRate() * 100).toFixed(1);
+
+        document.getElementById("memoriesBonus").textContent =
+          (getMemoriesBonusRate() * 100).toFixed(1);
+
+
+        // --------------------
+        // きおく
+        // --------------------
+
+        document.getElementById("memoryHusband").textContent =
+          importantThings.memories.husband.toLocaleString();
+
+        document.getElementById("memoryBruce").textContent =
+          importantThings.memories.bruce.toLocaleString();
+
+        document.getElementById("memoryKotetsu").textContent =
+          importantThings.memories.kotetsu.toLocaleString();
+
+        document.getElementById("memoryKotaro").textContent =
+          importantThings.memories.kotaro.toLocaleString();
+
+        document.getElementById("thingsBonus").textContent =
+          (getThingsBonusRate() * 100).toFixed(1);
+
+        document.getElementById("memoriesBonus").textContent =
+          (getMemoriesBonusRate() * 100).toFixed(1);
+
+        // --------------------
+        // とくべつ
+        // --------------------
+
+        document.getElementById("specialPinkCactus").textContent =
+          importantThings.special.pinkCactus
+            ? "ピンクのサボテン　HP +25%"
+            : "？？？？？？";
+
+        document.getElementById("specialSilverFlower").textContent =
+          importantThings.special.silverFlower
+            ? "銀細工のお花　けいけんち・ギル +25%"
+            : "？？？？？？";
+
+        document.getElementById("specialPairRing").textContent =
+          importantThings.special.pairRing
+            ? "ペアリング　まりょく +25%"
+            : "？？？？？？";
+
+        document.getElementById("specialEternalBondRing").textContent =
+          importantThings.special.eternalBondRing
+            ? "エタバンリング　りーふらわー +25%"
+            : "？？？？？？";
+
+        document.getElementById("specialLoveForHusband").textContent =
+          importantThings.special.loveForHusband
+            ? "旦那への愛　HP・まりょく・けいけんち・ギル +100%"
+            : "？？？？？？";
+      }
+
+      function getThingsBonusRate() {
+        const total =
+          importantThings.things.stone +
+          importantThings.things.plush +
+          importantThings.things.plasticBottle +
+          importantThings.things.days;
+
+        // 10個ごとに +0.1%
+        return Math.floor(total / 10) * 0.001;
+      }
+
+
+      function getMemoriesBonusRate() {
+        const total =
+          importantThings.memories.husband +
+          importantThings.memories.bruce +
+          importantThings.memories.kotetsu +
+          importantThings.memories.kotaro;
+
+        // 10個ごとに +0.1%
+        return Math.floor(total / 10) * 0.001;
+      }
+
       var achievementMessageTimer;
 
       const difficultyNames = [
@@ -603,6 +1111,121 @@
         7500,   // エクストラ
         10000   // インフェルノ
       ];
+
+      function getHpBonusRate() {
+        let bonusRate = 0;
+
+        // ピンクのサボテン：HP +25%
+        if (importantThings.special.pinkCactus) {
+          bonusRate += 0.25;
+        }
+
+        // 旦那への愛：HP +100%
+        if (importantThings.special.loveForHusband) {
+          bonusRate += 1.00;
+        }
+
+        return bonusRate;
+      }
+
+      function getExpSpecialBonusRate() {
+        let bonusRate = 0;
+
+        // 銀細工のお花：経験値 +25%
+        if (importantThings.special.silverFlower) {
+          bonusRate += 0.25;
+        }
+
+        // 旦那への愛：経験値 +100%
+        if (importantThings.special.loveForHusband) {
+          bonusRate += 1.00;
+        }
+
+        return bonusRate;
+      }
+
+
+      function getMoneyBonusRate() {
+        let bonusRate = 0;
+
+        // 銀細工のお花：ギル +25%
+        if (importantThings.special.silverFlower) {
+          bonusRate += 0.25;
+        }
+
+        // 旦那への愛：ギル +100%
+        if (importantThings.special.loveForHusband) {
+          bonusRate += 1.00;
+        }
+
+        return bonusRate;
+      }
+
+      function addMoney(baseMoney) {
+        const bonusRate = getMoneyBonusRate();
+
+        moneyFraction += baseMoney * (1 + bonusRate);
+
+        const gainedMoney = Math.floor(moneyFraction);
+
+        if (gainedMoney > 0) {
+          money += gainedMoney;
+          moneyFraction -= gainedMoney;
+        }
+      }
+
+      function getMagicBonusRate() {
+        let bonusRate = 0;
+
+        // ペアリング：まりょく +25%
+        if (importantThings.special.pairRing) {
+          bonusRate += 0.25;
+        }
+
+        // 旦那への愛：まりょく +100%
+        if (importantThings.special.loveForHusband) {
+          bonusRate += 1.00;
+        }
+
+        return bonusRate;
+      }
+
+
+      function getHammerBonusRate() {
+        let bonusRate = 0;
+
+        // エタバンリング：りーふらわー +25%
+        if (importantThings.special.eternalBondRing) {
+          bonusRate += 0.25;
+        }
+
+        return bonusRate;
+      }
+
+
+      function getFinalMagic() {
+        return Math.floor(
+          magic * (1 + getMagicBonusRate())
+        );
+      }
+
+
+      function getFinalHammer() {
+        return Math.floor(
+          hammer * (1 + getHammerBonusRate())
+        );
+      }
+
+
+      function getFinalAttack() {
+        return getFinalMagic() + getFinalHammer();
+      }
+
+      function getFinalMaxHp() {
+        return Math.floor(
+          playerMaxHp * (1 + getHpBonusRate())
+        );
+      }
 
       function unlockDifficultyClearAchievement(difficultyIndex) {
         const id = "difficultyClear" + difficultyIndex;
@@ -704,11 +1327,24 @@
         ...deathAchievements
       ];
 
-      // 5msごとにけいけんち+1
+      // 5msごとにけいけんち
       setInterval(() => {
         if (document.hidden) return;
 
-        exp++;
+        const memoriesBonusRate = getMemoriesBonusRate();
+        const specialBonusRate = getExpSpecialBonusRate();
+
+        // 基礎経験値 + きおく + とくべつ
+        expFraction +=
+          1 * (1 + memoriesBonusRate + specialBonusRate);
+        // 1以上たまった分だけ実際の経験値へ
+        const gainedExp = Math.floor(expFraction);
+
+        if (gainedExp > 0) {
+          exp += gainedExp;
+          expFraction -= gainedExp;
+        }
+
         updateScreen();
       }, 5);
 
@@ -737,7 +1373,7 @@
 
         // 1レベル以上あがったときだけHPぜんかい
         if (leveledUp) {
-          playerHp = playerMaxHp;
+          playerHp = getFinalMaxHp();
 
           happyMezapechi();
         }
@@ -838,7 +1474,10 @@
       }
 
       function updateScreen() {
-        let attack = magic + hammer;
+        const finalMagic = getFinalMagic();
+        const finalHammer = getFinalHammer();
+        const attack = getFinalAttack();
+        const finalMaxHp = getFinalMaxHp();
 
         // メイン
         document.getElementById("level").textContent = level.toLocaleString();
@@ -851,18 +1490,17 @@
 
         // ステータス
         document.getElementById("statusLevel").textContent = level.toLocaleString();
-        document.getElementById("playerMaxHp").textContent = playerMaxHp.toLocaleString();
-        document.getElementById("statusMagic").textContent = magic.toLocaleString();
-        document.getElementById("statusHammer").textContent = hammer.toLocaleString();
+        document.getElementById("playerMaxHp").textContent = finalMaxHp.toLocaleString();
+        document.getElementById("statusMagic").textContent = finalMagic.toLocaleString();
+        document.getElementById("statusHammer").textContent = finalHammer.toLocaleString();
         document.getElementById("statusAttack").textContent = attack.toLocaleString();
         document.getElementById("playerMaxHpJapanese").textContent =
-          formatJapaneseNumber(playerMaxHp);
-
+          formatJapaneseNumber(finalMaxHp);
         document.getElementById("statusMagicJapanese").textContent =
-          formatJapaneseNumber(magic);
+          formatJapaneseNumber(finalMagic);
 
         document.getElementById("statusHammerJapanese").textContent =
-          formatJapaneseNumber(hammer);
+          formatJapaneseNumber(finalHammer);
 
         document.getElementById("statusAttackJapanese").textContent =
           formatJapaneseNumber(attack);
@@ -874,17 +1512,17 @@
 
         //ゲージ
         document.getElementById("mainPlayerHp").textContent = formatShortNumber(playerHp);
-        document.getElementById("mainPlayerMaxHp").textContent = formatShortNumber(playerMaxHp);
+        document.getElementById("mainPlayerMaxHp").textContent = formatShortNumber(finalMaxHp);
 
         const hpPercent =
-          Math.max(0, Math.min(100, (playerHp / playerMaxHp) * 100));
+          Math.max(0, Math.min(100, (playerHp / finalMaxHp) * 100));
 
         document.getElementById("playerHpBar").style.width =
           hpPercent + "%";
       }
 
       function attackEnemy() {
-        let attack = magic + hammer;
+        const attack = getFinalAttack();
 
         enemyHp -= attack;
 
@@ -894,25 +1532,28 @@
           defeatCount++;
           stageDefeatCount++;
 
+          rollNormalImportantThing();
+          rollSpecialImportantThings();
+
           // 10たいごとにHPぜんかい
           if (
             stageDefeatCount > 0 &&
             stageDefeatCount % 10 === 0 &&
             stageDefeatCount < requiredStageDefeats
           ) {
-            playerHp = playerMaxHp;
+            playerHp = getFinalMaxHp();
           }
 
           if (enemyName === "ボス") {
-            money += 30;
+            addMoney(30);
 
             document.getElementById("battleMessage").textContent =
-              "ボスをたおした！ 30ギルをてにいれた！";
+              "ボスをたおした！";
           } else {
-            money += 5;
+            addMoney(5);
 
             document.getElementById("battleMessage").textContent =
-              "てきをたおした！ 5ギルをてにいれた！";
+              "てきをたおした！";
           }
 
           checkStageClear();
@@ -972,7 +1613,7 @@
           } else {
             clearInterval(reviveTimer);
 
-            playerHp = playerMaxHp;
+            playerHp = getFinalMaxHp();
             isDead = false;
             reviveMezapechi();
 
@@ -983,9 +1624,21 @@
       }
 
       function upgradeHammer() {
+        const thingsBonusRate = getThingsBonusRate();
+
         while (money >= hammerCost) {
           money -= hammerCost;
-          hammer++;
+
+          // 基礎+1に「もの」の強化効率を加える
+          hammerFraction += 1 + thingsBonusRate;
+
+          // 1以上になった分だけりーふらわーへ
+          const gainedHammer = Math.floor(hammerFraction);
+
+          if (gainedHammer > 0) {
+            hammer += gainedHammer;
+            hammerFraction -= gainedHammer;
+          }
         }
 
         updateScreen();
@@ -998,7 +1651,7 @@
         }
 
         stageDefeatCount = 0;
-        playerHp = playerMaxHp;
+        playerHp = getFinalMaxHp();
 
         // エリア50・ステージ100を突破したら
         // その難易度のクリア実績
@@ -1122,7 +1775,9 @@
           level,
           magic,
           hammer,
+          hammerFraction,
           exp,
+          expFraction,
           requiredExp,
           playerMaxHp,
           playerHp,
@@ -1132,6 +1787,7 @@
           defeatCount,
           deathCount,
           money,
+          moneyFraction,
           hammerCost,
           difficulty,
           area,
@@ -1141,6 +1797,7 @@
           bgmOn,
           seOn,
           unlockedAchievements,
+          importantThings,
           lastSaveTime: Date.now(),
         };
 
@@ -1175,9 +1832,18 @@
         level = data.level;
         magic = data.magic;
         hammer = data.hammer;
-        exp = data.exp;
-        requiredExp = data.requiredExp;
 
+        if (data.hammerFraction !== undefined) {
+          hammerFraction = data.hammerFraction;
+        }
+
+        exp = data.exp;
+
+        if (data.expFraction !== undefined) {
+          expFraction = data.expFraction;
+        }
+
+        requiredExp = data.requiredExp;
         playerMaxHp = data.playerMaxHp;
         playerHp = data.playerHp;
 
@@ -1189,6 +1855,11 @@
         deathCount = data.deathCount;
 
         money = data.money;
+
+        if (data.moneyFraction !== undefined) {
+          moneyFraction = data.moneyFraction;
+        }
+
         hammerCost = data.hammerCost;
 
         difficulty = data.difficulty;
@@ -1197,6 +1868,10 @@
         stageDefeatCount = data.stageDefeatCount;
 
         isInfinite = data.isInfinite;
+
+        if (stageDefeatCount >= requiredStageDefeats) {
+          stageDefeatCount = 0;
+        }
 
         if (data.bgmOn !== undefined) {
           bgmOn = data.bgmOn;
@@ -1207,6 +1882,9 @@
         }
         if (data.unlockedAchievements !== undefined) {
           unlockedAchievements = data.unlockedAchievements;
+        }
+        if (data.importantThings !== undefined) {
+          importantThings = data.importantThings;
         }
         const awaySince =
           localStorage.getItem("mezapechiAwaySince");
@@ -1244,7 +1922,7 @@
 
         // HPがおかしく0以下になっていたら復活
         if (playerHp <= 0) {
-          playerHp = playerMaxHp;
+          playerHp = getFinalMaxHp();
           updateScreen();
           return;
         }
@@ -1274,7 +1952,7 @@
       loadGame();
 
       if (playerHp <= 0) {
-        playerHp = playerMaxHp;
+        playerHp = getFinalMaxHp();
         isDead = false;
       }
 
@@ -1284,19 +1962,21 @@
       updateProgress();
       updateAchievements();
 
-      document.getElementById("enemyHp").textContent =
-        formatShortNumber(enemyHp);
-
       function showScreen(screenId) {
         document.getElementById("mainScreen").style.display = "none";
         document.getElementById("menuScreen").style.display = "none";
         document.getElementById("statusScreen").style.display = "none";
         document.getElementById("upgradeScreen").style.display = "none";
         document.getElementById("achievementScreen").style.display = "none";
+        document.getElementById("importantThingsScreen").style.display = "none";
         document.getElementById("titleScreen").style.display = "none";
         document.getElementById("settingsScreen").style.display = "none";
 
         document.getElementById(screenId).style.display = "block";
+
+        if (screenId === "importantThingsScreen") {
+          updateImportantThingsScreen();
+        }
 
         updateScreen();
       }
@@ -1334,7 +2014,10 @@
           level = 1;
           magic = 1;
           hammer = 1;
+          hammerFraction = 0;
+
           exp = 0;
+          expFraction = 0;
           requiredExp = 100;
 
           playerMaxHp = 200;
@@ -1344,9 +2027,33 @@
           deathCount = 0;
           unlockedAchievements = [];
 
-          money = 0;
-          hammerCost = 500;
+          importantThings = {
+            things: {
+              stone: 0,
+              plush: 0,
+              plasticBottle: 0,
+              days: 0
+            },
 
+            memories: {
+              husband: 0,
+              bruce: 0,
+              kotetsu: 0,
+              kotaro: 0
+            },
+
+            special: {
+              pinkCactus: false,
+              silverFlower: false,
+              pairRing: false,
+              eternalBondRing: false,
+              loveForHusband: false
+            }
+          };
+
+          money = 0;
+          moneyFraction = 0;
+          hammerCost = 500;
           difficulty = 0;
           area = 1;
           stage = 1;
@@ -1360,6 +2067,9 @@
 
           // おるすばん・通知も消す
           document.getElementById("offlineResult").style.display = "none";
+          document.getElementById(
+            "specialImportantThingResult"
+          ).style.display = "none";
           document.getElementById("achievementMessage").textContent = "";
           document.getElementById("battleMessage").textContent = "";
 
@@ -1440,10 +2150,14 @@
               );
             }
 
+            const oldFinalMaxHp = getFinalMaxHp();
+
             playerMaxHp += hp;
 
+            const newFinalMaxHp = getFinalMaxHp();
+
             if (!isDead) {
-              playerHp += hp;
+              playerHp += newFinalMaxHp - oldFinalMaxHp;
             }
 
             showAchievementMessage(
@@ -1490,11 +2204,15 @@
               );
             }
 
+            const oldFinalMaxHp = getFinalMaxHp();
+
             playerMaxHp += achievement.hp;
 
-            // いきているときだけげんざいHPもふえる
+            const newFinalMaxHp = getFinalMaxHp();
+
+            // いきているときだけ、実際に増えたMAX HPぶん現在HPもふえる
             if (!isDead) {
-              playerHp += achievement.hp;
+              playerHp += newFinalMaxHp - oldFinalMaxHp;
             }
 
             showAchievementMessage(
@@ -1796,8 +2514,7 @@
 
         if (turns <= 0) return;
 
-        // おるすばん開始時に通常画面で倒れていた場合
-        // 3秒ぶんを復活待ちとして消費する
+        // おるすばん開始時に倒れていた場合
         if (isDead || playerHp <= 0) {
           if (turns >= 30) {
             turns -= 30;
@@ -1805,50 +2522,80 @@
             turns = 0;
           }
 
-          playerHp = playerMaxHp;
+          playerHp = getFinalMaxHp();
           isDead = false;
         }
 
+        // おるすばん中はモブA/B/Cの平均値を使う
+        // A：HP10 攻撃1
+        // B：HP15 攻撃1
+        // C：HP8  攻撃2
+        const averageMobBaseHp = 11;
+        const averageMobBaseAttack = 4 / 3;
+
         while (turns > 0) {
 
-          const attack = magic + hammer;
+          let clearedStages =
+            difficulty * 50 * 100 +
+            (area - 1) * 100 +
+            (stage - 1);
 
-          // この敵を倒すのに必要な攻撃回数
+          let progressBonus =
+            clearedStages * 5 +
+            (difficulty * 49 + (area - 1)) * 10 +
+            difficulty * 20;
+
+          const attack = getFinalAttack();
+
+          // --------------------
+          // 今から戦う敵の平均能力
+          // --------------------
+
+          const isBoss =
+            stageDefeatCount === requiredStageDefeats - 1;
+
+          let targetHp;
+          let targetAttack;
+
+          if (isBoss) {
+            targetHp = 30 + progressBonus;
+            targetAttack = 3 + progressBonus;
+          } else {
+            targetHp = averageMobBaseHp + progressBonus;
+            targetAttack = averageMobBaseAttack + progressBonus;
+          }
+
+          // 敵を倒すのに必要なターン
           const attacksNeeded =
-            Math.ceil(enemyHp / attack);
+            Math.max(1, Math.ceil(targetHp / attack));
 
-          // 何回の反撃でぺちが倒れるか
+          // 最後の一撃では反撃されない
+          const counterAttacks =
+            Math.max(0, attacksNeeded - 1);
+
+          // --------------------
+          // この敵を倒す前に死亡する
+          // --------------------
+
           const hitsUntilDeath =
-            Math.ceil(playerHp / enemyAttack);
+            Math.ceil(playerHp / targetAttack);
 
-          // --------------------
-          // 敵を倒すより先にぺちが倒れる
-          // --------------------
-          if (hitsUntilDeath <= attacksNeeded - 1) {
+          if (hitsUntilDeath <= counterAttacks) {
 
             // 残り時間では死亡まで届かない
             if (turns < hitsUntilDeath) {
-              enemyHp -= attack * turns;
-              playerHp -= enemyAttack * turns;
-
+              playerHp -= targetAttack * turns;
               turns = 0;
               break;
             }
-
-            // 死亡するところまで戦闘
-            enemyHp -=
-              attack * hitsUntilDeath;
 
             turns -= hitsUntilDeath;
 
             playerHp = 0;
             deathCount++;
 
-            checkAchievements();
+            // 死亡したらそのステージの撃破数はリセット
             stageDefeatCount = 0;
-
-            // 死亡したら敵は新しくなる
-            spawnEnemy();
 
             // 復活待ち3秒
             if (turns >= 30) {
@@ -1857,51 +2604,39 @@
               turns = 0;
             }
 
-            // おるすばん内で復活完了
-            playerHp = playerMaxHp;
+            playerHp = getFinalMaxHp();
 
             continue;
           }
 
           // --------------------
-          // ぺちは敵を倒せる
+          // 残り時間では倒せない
           // --------------------
 
-          // 残り時間では倒しきれない
           if (turns < attacksNeeded) {
-            enemyHp -=
-              attack * turns;
-
-            playerHp -=
-              enemyAttack * turns;
-
+            playerHp -= targetAttack * turns;
             turns = 0;
             break;
           }
 
-          // 敵撃破まで進める
+          // --------------------
+          // 敵撃破
+          // --------------------
+
           turns -= attacksNeeded;
 
-          // 最後の一撃では敵が倒れるので反撃なし
-          const enemyCounterAttacks =
-            Math.max(0, attacksNeeded - 1);
-
           playerHp -=
-            enemyAttack * enemyCounterAttacks;
-
-          enemyHp = 0;
+            targetAttack * counterAttacks;
 
           defeatCount++;
           stageDefeatCount++;
 
           // ギル
-          if (enemyName === "ボス") {
-            money += 30;
+          if (isBoss) {
+            addMoney(30);
           } else {
-            money += 5;
+            addMoney(5);
           }
-
-          checkAchievements();
 
           // 10たいごとにHPぜんかい
           if (
@@ -1909,20 +2644,30 @@
             stageDefeatCount % 10 === 0 &&
             stageDefeatCount < requiredStageDefeats
           ) {
-            playerHp = playerMaxHp;
+            playerHp = getFinalMaxHp();
           }
 
-          checkStageClear();
-          spawnEnemy();
+          // --------------------
+          // ステージクリア
+          // --------------------
+
+          if (stageDefeatCount >= requiredStageDefeats) {
+            checkStageClear();
+          }
         }
 
-        // おるすばん戦闘から通常画面へ
-        // 「死んだ状態」は絶対に持ち越さない
+        // おるすばん終了時は死亡状態を残さない
         isDead = false;
 
         if (playerHp <= 0) {
-          playerHp = playerMaxHp;
+          playerHp = getFinalMaxHp();
         }
+
+        // おるすばん中に達成した実績を最後にまとめて判定
+        checkAchievements();
+
+        // 通常画面用に現在地点の敵を作り直す
+        spawnEnemy();
       }
 
       function applyOfflineProgress(offlineMs) {
@@ -1936,6 +2681,8 @@
         const beforeDefeats = defeatCount;
         const beforeDeaths = deathCount;
         const beforeMoney = money;
+        const beforeImportantThings =
+          JSON.parse(JSON.stringify(importantThings));
 
         let beforeProgress;
 
@@ -1950,15 +2697,37 @@
         }
 
         // オフライン中のけいけんち
-        const offlineExp = Math.floor(offlineMs / 5);
-        exp += offlineExp;
+        const baseOfflineExp = Math.floor(offlineMs / 5);
+        const memoriesBonusRate = getMemoriesBonusRate();
+        const specialBonusRate = getExpSpecialBonusRate();
+
+        expFraction +=
+          baseOfflineExp *
+          (1 + memoriesBonusRate + specialBonusRate);
+
+        const offlineGainedExp = Math.floor(expFraction);
+
+        if (offlineGainedExp > 0) {
+          exp += offlineGainedExp;
+          expFraction -= offlineGainedExp;
+        }
+
+        // オフライン戦闘前の撃破数
+        const beforeOfflineDefeats = defeatCount;
 
         // オフライン中のせんとう
         applyOfflineBattle(offlineMs);
 
+        // 今回のお留守番中に倒した数
+        const offlineDefeats =
+          defeatCount - beforeOfflineDefeats;
+
+        // 大事なものをまとめて抽選
+        rollOfflineImportantThings(offlineDefeats);
+
         // おるすばん終了時に倒れていたら復活
         if (isDead || playerHp <= 0) {
-          playerHp = playerMaxHp;
+          playerHp = getFinalMaxHp();
           isDead = false;
           reviveMezapechi();
         }
@@ -1978,7 +2747,8 @@
           defeatCount - beforeDefeats,
           deathCount - beforeDeaths,
           money - beforeMoney,
-          beforeProgress
+          beforeProgress,
+          beforeImportantThings
         );
 
         saveGame();
@@ -1990,7 +2760,8 @@
         gainedDefeats,
         gainedDeaths,
         gainedMoney,
-        beforeProgress
+        beforeProgress,
+        beforeImportantThings
       ) {
         // 5秒未満なら表示しない
         if (offlineMs < 1000) return;
@@ -2044,6 +2815,154 @@
 
         document.getElementById("offlineMoney").textContent =
           "ギル：+" + gainedMoney.toLocaleString();
+
+        const importantResults = [];
+
+        // --------------------
+        // もの
+        // --------------------
+
+        const stoneGain =
+          importantThings.things.stone -
+          beforeImportantThings.things.stone;
+
+        const plushGain =
+          importantThings.things.plush -
+          beforeImportantThings.things.plush;
+
+        const plasticBottleGain =
+          importantThings.things.plasticBottle -
+          beforeImportantThings.things.plasticBottle;
+
+        const daysGain =
+          importantThings.things.days -
+          beforeImportantThings.things.days;
+
+        if (stoneGain > 0) {
+          importantResults.push(
+            "石ころ +" + stoneGain.toLocaleString()
+          );
+        }
+
+        if (plushGain > 0) {
+          importantResults.push(
+            "ぬいぐるみ +" + plushGain.toLocaleString()
+          );
+        }
+
+        if (plasticBottleGain > 0) {
+          importantResults.push(
+            "ペットボトル +" + plasticBottleGain.toLocaleString()
+          );
+        }
+
+        if (daysGain > 0) {
+          importantResults.push(
+            "日々 +" + daysGain.toLocaleString()
+          );
+        }
+
+
+        // --------------------
+        // きおく
+        // --------------------
+
+        const husbandGain =
+          importantThings.memories.husband -
+          beforeImportantThings.memories.husband;
+
+        const bruceGain =
+          importantThings.memories.bruce -
+          beforeImportantThings.memories.bruce;
+
+        const kotetsuGain =
+          importantThings.memories.kotetsu -
+          beforeImportantThings.memories.kotetsu;
+
+        const kotaroGain =
+          importantThings.memories.kotaro -
+          beforeImportantThings.memories.kotaro;
+
+        if (husbandGain > 0) {
+          importantResults.push(
+            "旦那との思い出 +" + husbandGain.toLocaleString()
+          );
+        }
+
+        if (bruceGain > 0) {
+          importantResults.push(
+            "ブルースちゃんとの思い出 +" + bruceGain.toLocaleString()
+          );
+        }
+
+        if (kotetsuGain > 0) {
+          importantResults.push(
+            "虎徹との思い出 +" + kotetsuGain.toLocaleString()
+          );
+        }
+
+        if (kotaroGain > 0) {
+          importantResults.push(
+            "虎太郎との思い出 +" + kotaroGain.toLocaleString()
+          );
+        }
+
+
+        // --------------------
+        // とくべつ
+        // --------------------
+
+        if (
+          !beforeImportantThings.special.pinkCactus &&
+          importantThings.special.pinkCactus
+        ) {
+          importantResults.push("ピンクのサボテン");
+        }
+
+        if (
+          !beforeImportantThings.special.silverFlower &&
+          importantThings.special.silverFlower
+        ) {
+          importantResults.push("銀細工のお花");
+        }
+
+        if (
+          !beforeImportantThings.special.pairRing &&
+          importantThings.special.pairRing
+        ) {
+          importantResults.push("ペアリング");
+        }
+
+        if (
+          !beforeImportantThings.special.eternalBondRing &&
+          importantThings.special.eternalBondRing
+        ) {
+          importantResults.push("エタバンリング");
+        }
+
+        if (
+          !beforeImportantThings.special.loveForHusband &&
+          importantThings.special.loveForHusband
+        ) {
+          importantResults.push("旦那への愛");
+        }
+
+
+        // --------------------
+        // おるすばんけっかへ表示
+        // --------------------
+
+        const importantResult =
+          document.getElementById("offlineImportantThings");
+
+        if (importantResults.length > 0) {
+          importantResult.innerHTML =
+            "大事なもの：<br>" +
+            importantResults.join("<br>");
+        } else {
+          importantResult.textContent =
+            "大事なもの：なし";
+        }
 
         document.getElementById("offlineProgress").textContent =
           beforeProgress + " → " + afterProgress;
