@@ -1047,27 +1047,27 @@
 
         document.getElementById("specialPinkCactus").textContent =
           importantThings.special.pinkCactus
-            ? "ピンクのサボテン　HP +25%"
+            ? "ピンクのサボテン　HP +100%"
             : "？？？？？？";
 
         document.getElementById("specialSilverFlower").textContent =
           importantThings.special.silverFlower
-            ? "銀細工のお花　けいけんち・ギル +25%"
+            ? "銀細工のお花　けいけんち・ギル +100%"
             : "？？？？？？";
 
         document.getElementById("specialPairRing").textContent =
           importantThings.special.pairRing
-            ? "ペアリング　まりょく +25%"
+            ? "ペアリング　まりょく +100%"
             : "？？？？？？";
 
         document.getElementById("specialEternalBondRing").textContent =
           importantThings.special.eternalBondRing
-            ? "エタバンリング　りーふらわー +25%"
+            ? "エタバンリング　りーふらわー +100%"
             : "？？？？？？";
 
         document.getElementById("specialLoveForHusband").textContent =
           importantThings.special.loveForHusband
-            ? "旦那への愛　HP・まりょく・けいけんち・ギル +100%"
+            ? "旦那への愛　HP・まりょく・けいけんち・ギル +500%"
             : "？？？？？？";
       }
 
@@ -1079,7 +1079,7 @@
           importantThings.things.days;
 
         // 10個ごとに +0.1%
-        return Math.floor(total / 10) * 0.001;
+        return Math.floor(total / 10) * 0.01;
       }
 
 
@@ -1091,7 +1091,7 @@
           importantThings.memories.kotaro;
 
         // 10個ごとに +0.1%
-        return Math.floor(total / 10) * 0.001;
+        return Math.floor(total / 10) * 0.01;
       }
 
       var achievementMessageTimer;
@@ -1115,14 +1115,14 @@
       function getHpBonusRate() {
         let bonusRate = 0;
 
-        // ピンクのサボテン：HP +25%
+        // ピンクのサボテン：HP +100%
         if (importantThings.special.pinkCactus) {
-          bonusRate += 0.25;
+          bonusRate += 1.00;
         }
 
-        // 旦那への愛：HP +100%
+        // 旦那への愛：HP +500%
         if (importantThings.special.loveForHusband) {
-          bonusRate += 1.00;
+          bonusRate += 5.00;
         }
 
         return bonusRate;
@@ -1131,14 +1131,14 @@
       function getExpSpecialBonusRate() {
         let bonusRate = 0;
 
-        // 銀細工のお花：経験値 +25%
+        // 銀細工のお花：経験値 +100%
         if (importantThings.special.silverFlower) {
-          bonusRate += 0.25;
+          bonusRate += 1.00;
         }
 
-        // 旦那への愛：経験値 +100%
+        // 旦那への愛：経験値 +500%
         if (importantThings.special.loveForHusband) {
-          bonusRate += 1.00;
+          bonusRate += 5.00;
         }
 
         return bonusRate;
@@ -1148,14 +1148,14 @@
       function getMoneyBonusRate() {
         let bonusRate = 0;
 
-        // 銀細工のお花：ギル +25%
+        // 銀細工のお花：ギル +100%
         if (importantThings.special.silverFlower) {
-          bonusRate += 0.25;
+          bonusRate += 1.00;
         }
 
-        // 旦那への愛：ギル +100%
+        // 旦那への愛：ギル +500%
         if (importantThings.special.loveForHusband) {
-          bonusRate += 1.00;
+          bonusRate += 5.00;
         }
 
         return bonusRate;
@@ -1177,14 +1177,14 @@
       function getMagicBonusRate() {
         let bonusRate = 0;
 
-        // ペアリング：まりょく +25%
+        // ペアリング：まりょく +100%
         if (importantThings.special.pairRing) {
-          bonusRate += 0.25;
+          bonusRate += 1.00;
         }
 
-        // 旦那への愛：まりょく +100%
+        // 旦那への愛：まりょく +500%
         if (importantThings.special.loveForHusband) {
-          bonusRate += 1.00;
+          bonusRate += 5.00;
         }
 
         return bonusRate;
@@ -1194,9 +1194,9 @@
       function getHammerBonusRate() {
         let bonusRate = 0;
 
-        // エタバンリング：りーふらわー +25%
+        // エタバンリング：りーふらわー +100%
         if (importantThings.special.eternalBondRing) {
-          bonusRate += 0.25;
+          bonusRate += 1.00;
         }
 
         return bonusRate;
