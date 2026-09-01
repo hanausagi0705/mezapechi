@@ -403,6 +403,10 @@
         大事なもの
       </button>
 
+      <button onclick="showScreen('gachaScreen')">
+        ガチャ
+      </button>
+
       <button onclick="showScreen('settingsScreen')">
         せってい
       </button>
@@ -567,6 +571,58 @@
 
     </div>
 
+    <!-- ガチャ -->
+    <div id="gachaScreen" style="display: none;">
+
+      <h2>ガチャ</h2>
+
+      <h3>もってるかず</h3>
+
+      <p id="gachaCountStar1"></p>
+      <p id="gachaCountStar2"></p>
+      <p id="gachaCountStar3"></p>
+      <p id="gachaCountStar4"></p>
+      <p id="gachaCountStar5"></p>
+      <p id="gachaCountStar6"></p>
+      <p id="gachaCountStar7"></p>
+
+      <hr>
+
+      <p>なんかいまわす？</p>
+
+      <button onclick="runGacha(100)">
+        100かい
+      </button>
+
+      <button onclick="runGacha(100000)">
+        100,000かい
+      </button>
+
+      <br><br>
+
+      <div id="gachaResult" style="display: none;">
+        <hr>
+
+        <h3>ガチャけっか</h3>
+
+        <p id="gachaResultCount"></p>
+        <p id="gachaResultStar1"></p>
+        <p id="gachaResultStar2"></p>
+        <p id="gachaResultStar3"></p>
+        <p id="gachaResultStar4"></p>
+        <p id="gachaResultStar5"></p>
+        <p id="gachaResultStar6"></p>
+        <p id="gachaResultStar7"></p>
+
+        <hr>
+      </div>
+
+      <button onclick="showScreen('menuScreen')">
+        もどる
+      </button>
+
+    </div>
+
     <!-- しょうごう -->
     <div id="titleScreen" style="display: none;">
 
@@ -654,6 +710,242 @@
       let requiredStageDefeats = 100;
 
       let isInfinite = false;
+
+      // --------------------
+      // ガチャ
+      // --------------------
+
+      let gachaCounts = {
+        star1: 0,
+        star2: 0,
+        star3: 0,
+        star4: 0,
+        star5: 0,
+        star6: 0,
+        star7: 0
+      };
+
+      function getGachaUpgradeCount(star) {
+        const count = gachaCounts["star" + star];
+
+        if (star === 1) {
+          return Math.floor(count / 1000);
+        }
+
+        if (star === 2 || star === 3) {
+          return Math.floor(count / 500);
+        }
+
+        return Math.floor(count / 100);
+      }
+
+      function getGachaBonus(star) {
+        const count = gachaCounts["star" + star];
+
+        // まだ1個も引いていなければ効果なし
+        if (count === 0) {
+          return 0;
+        }
+
+        const upgradeCount = getGachaUpgradeCount(star);
+
+        if (star === 1) {
+          return 1 + upgradeCount;
+        }
+
+        if (star === 2) {
+          return 5 + upgradeCount;
+        }
+
+        if (star === 3) {
+          return 10 + upgradeCount;
+        }
+
+        if (star === 4) {
+          return 25 + upgradeCount;
+        }
+
+        if (star === 5) {
+          return 100 + upgradeCount * 10;
+        }
+
+        if (star === 6) {
+          return 500 + upgradeCount * 10;
+        }
+
+        if (star === 7) {
+          return 1000 + upgradeCount * 100;
+        }
+      }
+
+      function getGachaFlatMagicBonus() {
+        return (
+          getGachaBonus(1) +
+          getGachaBonus(2) +
+          getGachaBonus(3)
+        );
+      }
+
+      function getGachaMagicBonusRate() {
+        return (
+          getGachaBonus(4) +
+          getGachaBonus(5) +
+          getGachaBonus(6) +
+          getGachaBonus(7)
+        ) / 100;
+      }
+
+      function updateGachaCountDisplay() {
+        document.getElementById("gachaCountStar1").textContent =
+          "☆1：" +
+          gachaCounts.star1.toLocaleString() +
+          "こ　まりょく+" +
+          getGachaBonus(1).toLocaleString();
+
+        document.getElementById("gachaCountStar2").textContent =
+          "☆2：" +
+          gachaCounts.star2.toLocaleString() +
+          "こ　まりょく+" +
+          getGachaBonus(2).toLocaleString();
+
+        document.getElementById("gachaCountStar3").textContent =
+          "☆3：" +
+          gachaCounts.star3.toLocaleString() +
+          "こ　まりょく+" +
+          getGachaBonus(3).toLocaleString();
+
+        document.getElementById("gachaCountStar4").textContent =
+          "☆4：" +
+          gachaCounts.star4.toLocaleString() +
+          "こ　まりょく+" +
+          getGachaBonus(4).toLocaleString() +
+          "%";
+
+        document.getElementById("gachaCountStar5").textContent =
+          "☆5：" +
+          gachaCounts.star5.toLocaleString() +
+          "こ　まりょく+" +
+          getGachaBonus(5).toLocaleString() +
+          "%";
+
+        document.getElementById("gachaCountStar6").textContent =
+          "☆6：" +
+          gachaCounts.star6.toLocaleString() +
+          "こ　まりょく+" +
+          getGachaBonus(6).toLocaleString() +
+          "%";
+
+        document.getElementById("gachaCountStar7").textContent =
+          "☆7：" +
+          gachaCounts.star7.toLocaleString() +
+          "こ　まりょく+" +
+          getGachaBonus(7).toLocaleString() +
+          "%";
+      }
+
+      function rollGachaOnce() {
+        // 0 ～ 99,999,999 の整数を1つ作る
+        const roll = Math.floor(Math.random() * 100000000);
+
+        // ☆7：1億分の1
+        if (roll < 1) {
+          return 7;
+        }
+
+        // ☆6：100万分の1
+        if (roll < 101) {
+          return 6;
+        }
+
+        // ☆5：1万分の1
+        if (roll < 10101) {
+          return 5;
+        }
+
+        // ☆4：100分の1
+        if (roll < 1010101) {
+          return 4;
+        }
+
+        // ☆3：8.989899%
+        if (roll < 10000000) {
+          return 3;
+        }
+
+        // ☆2：20%
+        if (roll < 30000000) {
+          return 2;
+        }
+
+        // ☆1：70%
+        return 1;
+      }
+
+      function rollGacha(count) {
+        const results = {
+          star1: 0,
+          star2: 0,
+          star3: 0,
+          star4: 0,
+          star5: 0,
+          star6: 0,
+          star7: 0
+        };
+
+        for (let i = 0; i < count; i++) {
+          const star = rollGachaOnce();
+
+          results["star" + star]++;
+        }
+
+        return results;
+      }
+
+      function runGacha(count) {
+        const results = rollGacha(count);
+
+        gachaCounts.star1 += results.star1;
+        gachaCounts.star2 += results.star2;
+        gachaCounts.star3 += results.star3;
+        gachaCounts.star4 += results.star4;
+        gachaCounts.star5 += results.star5;
+        gachaCounts.star6 += results.star6;
+        gachaCounts.star7 += results.star7;
+
+        console.log("ガチャ結果", results);
+        console.log("ガチャ累計", gachaCounts);
+
+        document.getElementById("gachaResultCount").textContent =
+          count.toLocaleString() + "かいまわした！";
+
+        document.getElementById("gachaResultStar1").textContent =
+          "☆1：" + results.star1.toLocaleString() + "こ";
+
+        document.getElementById("gachaResultStar2").textContent =
+          "☆2：" + results.star2.toLocaleString() + "こ";
+
+        document.getElementById("gachaResultStar3").textContent =
+          "☆3：" + results.star3.toLocaleString() + "こ";
+
+        document.getElementById("gachaResultStar4").textContent =
+          "☆4：" + results.star4.toLocaleString() + "こ";
+
+        document.getElementById("gachaResultStar5").textContent =
+          "☆5：" + results.star5.toLocaleString() + "こ";
+
+        document.getElementById("gachaResultStar6").textContent =
+          "☆6：" + results.star6.toLocaleString() + "こ";
+
+        document.getElementById("gachaResultStar7").textContent =
+          "☆7：" + results.star7.toLocaleString() + "こ";
+
+        document.getElementById("gachaResult").style.display =
+          "block";
+
+        updateGachaCountDisplay();
+
+        saveGame();
+      }
 
       let bgmOn = true;
       let seOn = true;
@@ -1047,27 +1339,27 @@
 
         document.getElementById("specialPinkCactus").textContent =
           importantThings.special.pinkCactus
-            ? "ピンクのサボテン　HP +100%"
+            ? "ピンクのサボテン　HP +25%"
             : "？？？？？？";
 
         document.getElementById("specialSilverFlower").textContent =
           importantThings.special.silverFlower
-            ? "銀細工のお花　けいけんち・ギル +100%"
+            ? "銀細工のお花　けいけんち・ギル +25%"
             : "？？？？？？";
 
         document.getElementById("specialPairRing").textContent =
           importantThings.special.pairRing
-            ? "ペアリング　まりょく +100%"
+            ? "ペアリング　まりょく +25%"
             : "？？？？？？";
 
         document.getElementById("specialEternalBondRing").textContent =
           importantThings.special.eternalBondRing
-            ? "エタバンリング　りーふらわー +100%"
+            ? "エタバンリング　りーふらわー +25%"
             : "？？？？？？";
 
         document.getElementById("specialLoveForHusband").textContent =
           importantThings.special.loveForHusband
-            ? "旦那への愛　HP・まりょく・けいけんち・ギル +500%"
+            ? "旦那への愛　HP・まりょく・けいけんち・ギル +100%"
             : "？？？？？？";
       }
 
@@ -1120,9 +1412,9 @@
           bonusRate += 1.00;
         }
 
-        // 旦那への愛：HP +500%
+        // 旦那への愛：HP +100%
         if (importantThings.special.loveForHusband) {
-          bonusRate += 5.00;
+          bonusRate += 1.00;
         }
 
         return bonusRate;
@@ -1136,9 +1428,9 @@
           bonusRate += 1.00;
         }
 
-        // 旦那への愛：経験値 +500%
+        // 旦那への愛：経験値 +100%
         if (importantThings.special.loveForHusband) {
-          bonusRate += 5.00;
+          bonusRate += 1.00;
         }
 
         return bonusRate;
@@ -1153,9 +1445,9 @@
           bonusRate += 1.00;
         }
 
-        // 旦那への愛：ギル +500%
+        // 旦那への愛：ギル +100%
         if (importantThings.special.loveForHusband) {
-          bonusRate += 5.00;
+          bonusRate += 1.00;
         }
 
         return bonusRate;
@@ -1177,14 +1469,14 @@
       function getMagicBonusRate() {
         let bonusRate = 0;
 
-        // ペアリング：まりょく +100%
+        // ペアリング：まりょく +25%
         if (importantThings.special.pairRing) {
-          bonusRate += 1.00;
+          bonusRate += 0.25;
         }
 
-        // 旦那への愛：まりょく +500%
+        // 旦那への愛：まりょく +100%
         if (importantThings.special.loveForHusband) {
-          bonusRate += 5.00;
+          bonusRate += 1.00;
         }
 
         return bonusRate;
@@ -1194,9 +1486,9 @@
       function getHammerBonusRate() {
         let bonusRate = 0;
 
-        // エタバンリング：りーふらわー +100%
+        // エタバンリング：りーふらわー +25%
         if (importantThings.special.eternalBondRing) {
-          bonusRate += 1.00;
+          bonusRate += 0.25;
         }
 
         return bonusRate;
@@ -1204,8 +1496,14 @@
 
 
       function getFinalMagic() {
+        const baseMagic =
+          magic + getGachaFlatMagicBonus();
+
+        const bonusRate =
+          getMagicBonusRate() + getGachaMagicBonusRate();
+
         return Math.floor(
-          magic * (1 + getMagicBonusRate())
+          baseMagic * (1 + bonusRate)
         );
       }
 
@@ -1716,33 +2014,33 @@
           (stage - 1);
 
         let progressBonus =
-          clearedStages * 5 +
-          (difficulty * 49 + (area - 1)) * 10 +
-          difficulty * 20;
+          clearedStages * 100 +
+          (difficulty * 49 + (area - 1)) * 500 +
+          difficulty * 500;
 
         // 10たいめはボス
         if (stageDefeatCount === requiredStageDefeats - 1) {
           enemyName = "ボス";
 
-          enemyMaxHp = 30 + progressBonus;
-          enemyAttack = 3 + progressBonus;
+          enemyMaxHp = 50 + progressBonus;
+          enemyAttack = 5 + progressBonus;
         } else {
           const mobs = ["モブA", "モブB", "モブC"];
           enemyName = mobs[Math.floor(Math.random() * mobs.length)];
 
           if (enemyName === "モブA") {
-            enemyMaxHp = 10 + progressBonus;
-            enemyAttack = 1 + progressBonus;
+            enemyMaxHp = 20 + progressBonus;
+            enemyAttack = 2 + progressBonus;
           }
 
           if (enemyName === "モブB") {
-            enemyMaxHp = 15 + progressBonus;
-            enemyAttack = 1 + progressBonus;
+            enemyMaxHp = 25 + progressBonus;
+            enemyAttack = 2 + progressBonus;
           }
 
           if (enemyName === "モブC") {
-            enemyMaxHp = 8 + progressBonus;
-            enemyAttack = 2 + progressBonus;
+            enemyMaxHp = 13 + progressBonus;
+            enemyAttack = 4 + progressBonus;
           }
         }
 
@@ -1798,6 +2096,7 @@
           seOn,
           unlockedAchievements,
           importantThings,
+          gachaCounts,
           lastSaveTime: Date.now(),
         };
 
@@ -1886,6 +2185,9 @@
         if (data.importantThings !== undefined) {
           importantThings = data.importantThings;
         }
+        if (data.gachaCounts !== undefined) {
+          gachaCounts = data.gachaCounts;
+        }
         const awaySince =
           localStorage.getItem("mezapechiAwaySince");
 
@@ -1969,10 +2271,15 @@
         document.getElementById("upgradeScreen").style.display = "none";
         document.getElementById("achievementScreen").style.display = "none";
         document.getElementById("importantThingsScreen").style.display = "none";
+        document.getElementById("gachaScreen").style.display = "none";
         document.getElementById("titleScreen").style.display = "none";
         document.getElementById("settingsScreen").style.display = "none";
 
         document.getElementById(screenId).style.display = "block";
+
+        if (screenId === "gachaScreen") {
+          updateGachaCountDisplay();
+        }
 
         if (screenId === "importantThingsScreen") {
           updateImportantThingsScreen();
@@ -2049,6 +2356,16 @@
               eternalBondRing: false,
               loveForHusband: false
             }
+          };
+
+          gachaCounts = {
+            star1: 0,
+            star2: 0,
+            star3: 0,
+            star4: 0,
+            star5: 0,
+            star6: 0,
+            star7: 0
           };
 
           money = 0;
@@ -2527,12 +2844,11 @@
         }
 
         // おるすばん中はモブA/B/Cの平均値を使う
-        // A：HP10 攻撃1
-        // B：HP15 攻撃1
-        // C：HP8  攻撃2
-        const averageMobBaseHp = 11;
-        const averageMobBaseAttack = 4 / 3;
-
+        // A：HP20 攻撃2
+        // B：HP25 攻撃2
+        // C：HP13 攻撃4
+        const averageMobBaseHp = 58 / 3;
+        const averageMobBaseAttack = 8 / 3;
         while (turns > 0) {
 
           let clearedStages =
@@ -2541,9 +2857,9 @@
             (stage - 1);
 
           let progressBonus =
-            clearedStages * 5 +
-            (difficulty * 49 + (area - 1)) * 10 +
-            difficulty * 20;
+            clearedStages * 100 +
+            (difficulty * 49 + (area - 1)) * 500 +
+            difficulty * 500;
 
           const attack = getFinalAttack();
 
@@ -2558,8 +2874,8 @@
           let targetAttack;
 
           if (isBoss) {
-            targetHp = 30 + progressBonus;
-            targetAttack = 3 + progressBonus;
+            targetHp = 50 + progressBonus;
+            targetAttack = 5 + progressBonus;
           } else {
             targetHp = averageMobBaseHp + progressBonus;
             targetAttack = averageMobBaseAttack + progressBonus;
